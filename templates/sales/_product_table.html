@@ -1,0 +1,75 @@
+<!--=====product table========-->
+<div class="max-h-90 overflow-y-auto">
+    <table id="product-table" class="w-full text-left text-sm">
+        <thead class="border-b border-slate-200 bg-slate-50">
+            <tr class="border-b">
+                <th class="px-6 py-4 font-medium text-slate-600">Product</th>
+                <th class="px-6 py-4 font-medium text-slate-600">Photo</th>
+
+                <th class="px-6 py-4 font-medium text-slate-600">Price</th>
+                <th class="px-6 py-4 font-medium text-slate-600">Stock</th>
+                <th class="px-6 py-4 font-medium text-slate-600">Quantity</th>
+                <th class="px-6 py-4 font-medium text-slate-600">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+
+                <tr x-data="{ productQty: 1, productStock: {{ product['stock'] }} }" class="border-b border-slate-300">
+                    <td class="px-6 py-4">{{ product['name'] }}</td>
+                    <td class="px-6 py-4">
+                        <img src="{{ url_for('static',filename='uploads/' + product['photo']) }}"
+                            class="h-10 w-10 rounded-lg object-cover">
+                    </td>
+                    <td class="px-6 py-4">${{ "{:,.2f}".format(product["price"]) }}</td>
+                    <td class="px-6 py-4">
+                        {% if product['stock'] <= 5 %}
+
+                            <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                                {{ product['stock'] }} Low
+                            </span>
+                        {% else %}
+                            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                                {{ product['stock'] }} In Stock
+                            </span>
+                        {% endif %}
+
+
+                    </td>
+                    <td class="px-6 py-4"><button
+                            class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
+                            @click="productQty=Math.max(1,productQty-1)">-</button>
+                        <span x-text="productQty"></span>
+                        <button
+                            class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
+                            @click="productQty = Math.min(productStock, productQty + 1)">+</button>
+
+                    </td>
+                    <td class="px-6 py-4"><button data-product-id="{{ product['id'] }}"
+                            data-product-name="{{ product['name'] }}" data-product-price="{{ product['price'] }}"
+                            data-product-stock="{{ product['stock'] }}"
+                            @click="
+                                                                                                                                                                                                        existing = cart.find(p => p.id === $el.dataset.productId);
+
+                                                                                                                                                                                                        if (existing) {
+                                                                                                                                                                                                        existing.quantity = Math.min(existing.stock,existing.quantity+productQty);
+                                                                                                                                                                                                        } else {
+                                                                                                                                                                                                        cart.push({
+                                                                                                                                                                                                        id: $el.dataset.productId,
+                                                                                                                                                                                                        name: $el.dataset.productName,
+                                                                                                                                                                                                        price: $el.dataset.productPrice,
+                                                                                                                                                                                                        stock: Number($el.dataset.productStock),
+                                                                                                                                                                                                        quantity: productQty
+                                                                                                                                                                                                        });
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                        "
+                            class="px-4 py-2 rounded-lg border bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-colors duration-200">
+                            Add
+                        </button>
+
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,47 @@
+<tr id="product-{{ product['id'] }}" class="border-b border-slate-100">
+    <td class="px-6 py-4">{{ product["name"] }}</td>
+    <td class="px-6 py-4">
+        <img src="{{ url_for('static',filename='uploads/' + product['photo']) }}"
+            class="h-10 w-10 rounded-lg object-cover">
+    </td>
+    <td class="px-6 py-4">{{ product["category"] }}</td>
+    <td class="px-6 py-4">${{ "{:,.2f}".format(product["price"]) }}</td>
+    <td class="px-6 py-4">${{ "{:,.2f}".format(product["cost_price"]) }}</td>
+    <td class="px-6 py-4">
+        {% if product['stock'] <= 5 %}
+            <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                {{ product['stock'] }} Low
+            </span>
+        {% else %}
+            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                {{ product['stock'] }} In Stock
+            </span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4">
+        <div class="flex gap-2">
+            <button type="button" @click="editOpen = true"
+                hx-get="{{ url_for('product.edit_products', id=product['id']) }}" hx-target="#edit-form "
+                hx-swap="innerHTML" class="text-sm text-blue-600 cursor-pointer transition duration-200 ">
+                Edit
+            </button>
+
+            <div x-data="{confirm:false}">
+                <button x-show="!confirm" @click="confirm=true" class="text-sm text-red-600 cursor-pointer  ">
+                    Delete
+                </button>
+
+                <div x-show="confirm" class="flex gap-2">
+                    <button @click="confirm = false" class="text-sm text-slate-500 cursor-pointer ">
+                        No
+                    </button>
+
+                    <button hx-post="{{ url_for('product.delete_product', id=product['id']) }}"
+                        hx-target="#product-table" hx-swap="outerHTML" class="text-sm text-red-600 cursor-pointer  ">
+                        Yes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </td>
+</tr>

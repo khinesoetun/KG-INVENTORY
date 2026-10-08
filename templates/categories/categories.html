@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}
+    Categories
+{% endblock %}
+{% block content %}
+    <div x-data="{open:false,editOpen:false,deleteOpen:false,preview:null}" class="flex-1 bg-[#F8FAFC] p-8">
+
+        <!-- ===== Page Header ===== -->
+        <h1 class="text-2xl font-semibold text-slate-900">
+            Categories
+        </h1>
+
+        <p class="mt-1 text-sm text-slate-500">
+            Manage your product categories
+        </p>
+        <!-- ===== Category Toolbar ===== -->
+        <div class="mt-6 flex items-center justify-between">
+
+            <div></div>
+            <div class="mt-6 flex items-center w-full justify-between">
+                <!--Search category-->
+                <input type="text" name="q" placeholder="Search category............."
+                    hx-get="{{ url_for('category.search_categories') }}" hx-target="#category-cards" hx-trigger="input"
+                    hx-swap="outerHTML"
+                    class=" w-80 max-w-sm rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+
+                <button type="button" @click="open=true"
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-blue-700 transition-colors duration-200">
+                    + Add Category
+                </button>
+            </div>
+
+
+        </div>
+        <div id="category-content">
+            <!--==== Add model form-->
+            <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+                <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+
+                    {% include "categories/_add_form.html" %}
+
+                </div>
+            </div>
+            <!--edit modal-->
+            <div x-show="editOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+                    <div id="edit-category-form"></div>
+                </div>
+
+            </div>
+            <!-- ===== Category Cards ===== -->
+            {% include "categories/_category_cards.html" %}
+
+        </div>
+        <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+            <div class=" max-w-xs rounded-xl bg-white p-6 shadow-xl">
+                <div id="delete-confirm-modal"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+{% endblock %}

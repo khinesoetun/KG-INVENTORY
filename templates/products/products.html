@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Products
+{% endblock %}
+
+{% block content %}
+    <!-- ===== Products Page / Alpine Scope ===== -->
+    <div x-data="{ open: false, editOpen: false, preview: null }" class="flex-1 bg-[#F8FAFC] p-8">
+        <!-- ===== Page Header ===== -->
+        <h1 class="text-2xl font-semibold text-slate-900">
+            Products
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+            Manage your inventory products
+        </p>
+        <!-- ===== Search & Add Product ===== -->
+        <div class="flex flex-col items-end">
+
+            <div class="mt-6 flex w-full items-center justify-between">
+
+                <input type="text" name="q" placeholder="Search products......."
+                    class="w-80 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none"
+                    hx-get="{{ url_for('product.search_products') }}" hx-trigger="keyup changed delay:300ms"
+                    hx-target="#product-table" hx-swap="outerHTML">
+
+                <button type="button" @click="open = true"
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white cursor-pointer transition duration-200">
+                    + Add Product
+                </button>
+
+            </div>
+            <!-- ===== Add Product Form ===== -->
+            <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+                <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+
+                    {% include "products/_add_form.html" %}
+
+                </div>
+            </div>
+        </div>
+        <!-- ===== Product Table ===== -->
+        <div class="max-h-[700px] overflow-auto">
+            <div class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm">
+                {% include "products/_product_table.html" %}
+            </div>
+        </div>
+        <!-- ===== Edit Product Modal ===== -->
+        <div x-show="editOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+
+                <h2 class="text-lg font-semibold text-slate-800">
+                    Edit Product
+                </h2>
+                <div id="edit-form">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===== End Products Page / Alpine Scope ===== -->
+
+{% endblock %}

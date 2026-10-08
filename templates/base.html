@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/alpine.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+    <title>{% block title %}{% endblock %}</title>
+</head>
+
+<body>
+
+    <div class="flex min-h-screen gap-6">
+
+        <aside class="w-60 bg-[#0F1629]">
+            <div class="p-6">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+                        <span class="text-sm font-bold text-white">KG</span>
+                    </div>
+
+                    <h2 class="text-xl font-semibold text-white">
+                        Inventory
+                    </h2>
+                </div>
+            </div>
+            <nav class="mt-6 px-6">
+                <ul class="space-y-2">
+                    <a href="{{ url_for('dashboard.home') }}"
+                        class="flex items-center gap-3 rounded-lg bg-[#1E293B] px-4 py-2 text-sm text-white">
+                        <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('product.products') }}"
+                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300">
+                        <i data-lucide="package" class="h-5 w-5"></i>
+                        Products
+                    </a>
+                    <a href="{{ url_for('category.categories') }}"
+                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300">
+                        <i data-lucide="tags" class="h-5 w-5"></i>
+                        Categories
+                    </a>
+                    <a href="{{ url_for('sales.sales') }}"
+                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300">
+                        <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+                        Sales
+                    </a>
+                    <a href="{{ url_for('reports.reports') }}"
+                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300">
+                        <i data-lucide="bar-chart-3" class="h-5 w-5"></i>
+                        Reports
+                    </a>
+                    <li class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300">
+                        <i data-lucide="settings" class="h-5 w-5"></i>
+                        Settings
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+
+        <main class="flex-1">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>

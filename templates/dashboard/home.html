@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Dashboard
+{% endblock %}
+{% block content %}
+
+    <div class="flex-1 bg-[#F8FAFC] p-8">
+        <h1 class="text-2xl font-semibold text-slate-900">
+            Dashboard
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+            Overview of your inventory and sales
+        </p>
+        <!-- card wrapper-->
+        <div class="mt-8 flex gap-4 ">
+            <!--startwrappercard-->
+
+            <!--card1-->
+            <div
+                class="mt-8 w-65 rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="flex gap-4">
+                    <!--start accentbar-->
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
+                        <i data-lucide="tags" class="h-10 w-10 text-blue-600"></i>
+                    </div>
+                    <!--end accentbar-->
+                    <div>
+                        <p class="text-sm text-slate-500 ">
+                            Total Categories
+                        </p>
+                        <p class="mt-4 text-lg font-semibold text-slate-900">
+                            {{ total_categories }}
+                        </p>
+                    </div>
+                </div><!--end card1-->
+
+            </div>
+            <!--stopwrappercard-->
+            <div
+                class="mt-8 w-65 rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="flex gap-4">
+                    <!--start accentbar-->
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+                        <i data-lucide="boxes" class="h-10 w-10 text-emerald-600"></i>
+                    </div>
+                    <!--end accentbar-->
+                    <div>
+                        <p class="text-sm text-slate-500 ">
+                            Total Stock
+                        </p>
+                        <p class="mt-4 text-lg font-semibold text-slate-900">
+                            {{ total_stock }}
+                        </p>
+                    </div>
+                </div><!--end card1-->
+
+            </div>
+            <!--stopwrappercard-->
+            <div
+                class="mt-8 w-65 rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="flex gap-4">
+                    <!--start accentbar-->
+                    <div class="flex h-20 w-20 items-center shrink-0 justify-center rounded-full bg-violet-100">
+                        <i data-lucide="receipt" class="h-10 w-10 text-violet-600"></i>
+                    </div>
+                    <!--end accentbar-->
+                    <div>
+                        <p class="text-sm text-slate-500 ">
+                            Total Sales
+                        </p>
+                        <p class="mt-4 text-lg font-semibold text-slate-900">
+                            ${{ "%.2f"|format(total_sales) }}
+                        </p>
+                    </div>
+
+                </div><!--end card1-->
+
+            </div>
+            <!--stopwrappercard-->
+            <div
+                class="mt-8 w-65 rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="flex gap-4">
+                    <!--start accentbar-->
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                        <i data-lucide="triangle-alert" class="h-10 w-10 text-amber-600"></i>
+                    </div>
+                    <!--end accentbar-->
+                    <div>
+                        <p class="text-sm text-slate-500 ">
+                            Low Stock
+                        </p>
+                        <p class="mt-4 text-lg font-semibold text-slate-900">
+                            {{ low_stock }} Items
+                        </p>
+                    </div>
+
+                </div><!--end card1-->
+
+            </div>
+            <!--stopwrappercard-->
+        </div>
+        <!--end card wrapper-->
+        <div class="mt-8 flex gap-5">
+            <!--saleoverview container-->
+            <div class=" w-[816px] rounded-xl bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-semibold text-slate-900">
+                        Sale Overview
+                    </h2>
+
+                </div>
+                <div class="relative mt-8 h-40">
+
+                    <canvas id="salesChart"></canvas>
+
+                </div>
+            </div>
+            <!--saleoverview container end-->
+            <div
+                class="mt-8 w-70 rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <h2 class="text-base font-semibold text-slate-900">
+                    Recent Sales
+                </h2>
+
+                <div class="mt-5 space-y-4">
+                    {% for sale in recent_sales %}
+                        <div class="flex items-center justify-between py-1.5 transition hover:bg-slate-50">
+
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                                    <i data-lucide="shopping-bag" class="h-4 w-4 text-blue-600"></i>
+                                </div>
+
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700">
+                                        Sale #{{ sale.id }}
+                                    </p>
+                                    <p class="text-xs text-slate-400">
+                                        {{ sale.created_at }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <span class="text-sm font-medium text-slate-900">
+                                ${{ "%.2f"|format(sale.total) }}
+                            </span>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div
+            class="mt-8 w-[816px] rounded-xl bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+            <h2 class="text-base font-semibold text-slate-900">
+                Low Stock
+            </h2>
+
+            <div class="mt-6 space-y-4">
+                {% for product in low_stock_products %}
+                    <div class="flex items-center justify-between py-1.5 transition hover:bg-slate-50">
+                        <span class="text-slate-700">
+                            {{ product.name }} — {{ product.stock }} left
+                        </span>
+                        <span class="font-medium text-amber-500">
+                            Low
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    <script>
+        const ctx = document.getElementById('salesChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels | tojson }},
+                datasets: [{
+                    label: 'Revenue',
+                    data: {{ chart_revenue | tojson }},
+                    tension: 0.3
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

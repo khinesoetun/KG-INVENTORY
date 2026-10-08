@@ -1,0 +1,20 @@
+{
+  "name": "inventory-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "alpinejs": "^3.17.4",
+    "chart.js": "^4.5.1",
+    "htmx.org": "^2.0.11",
+    "lucide": "^1.48.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

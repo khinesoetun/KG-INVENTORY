@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}
+    Reports
+{% endblock %}
+{% block content %}
+    <div class="p-6">
+        <!--header-->
+        <div class="mb-6 flex items-start justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold">Reports</h1>
+                <p class="text-sm text-slate-500">Sales & profit overview</p>
+            </div>
+
+            <a href="{{ url_for('reports.reports_pdf') }}"
+                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200">
+                Download PDF
+            </a>
+        </div>
+        <div class=" grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"><!--cards-->
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <p class="text-sm text-slate-500">Total Revenue</p>
+                <p class="text-sm text-slate-500">${{ "%.2f"|format(revenue) }}</p>
+            </div>
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <p class="text-sm text-slate-500">Total Cost</p>
+                <p class="text-sm text-slate-500">${{ "%.2f"|format(cost) }}</p>
+            </div>
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <p class="text-sm text-slate-500">Gross Profit</p>
+                <p class="text-sm text-slate-500">${{ "%.2f"|format(gross_profit) }}</p>
+            </div>
+            <div
+                class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <p class="text-sm text-slate-500">Profit Margin</p>
+                <p class="text-sm text-slate-500">{{ "%.2f"|format(profit_margin) }}%</p>
+            </div>
+        </div>
+        <!--Sale overview-->
+        <div class="mb-6 rounded border border-slate-200 bg-white p-5">
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold">Sales Overview</h2>
+                <p class="text-sm text-slate-500">
+                    Revenue and profit over time
+                </p>
+            </div>
+            <div class="relative h-72">
+                <canvas id="salesChart"></canvas>
+
+            </div>
+        </div>
+    </div>
+    <!--producttable-->
+    <div class="rounded-lg border border-slate-200 bg-white p-5">
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold">Product Performance</h2>
+            <p class="text-sm text-slate-500">
+                Sales performance by product
+            </p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-left cursor-pointer border-slate-100 transition hover:bg-slate-50">
+                        <th class="px-4 py-3 font-medium">Product</th>
+                        <th class="px-4 py-3 font-medium">Qty Sold</th>
+                        <th class="px-4 py-3 font-medium">Revenue</th>
+                        <th class="px-4 py-3 font-medium">Cost</th>
+                        <th class="px-4 py-3 font-medium">Profit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in product_rows %}
+                        <tr class="border-b border-slate-100 cursor-pointer transition hover:bg-slate-50">
+                            <td class="px-4 py-3">{{ product.name }}</td>
+                            <td class="px-4 py-3">{{ product.qty_sold }}</td>
+                            <td class="px-4 py-3">${{ "%.2f"|format(product.revenue) }}</td>
+                            <td class="px-4 py-3">${{ "%.2f"|format(product.cost) }}</td>
+                            <td class="px-4 py-3">${{ "%.2f"|format(product.profit) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('salesChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+
+            data: {
+                labels: {{ chart_labels | tojson }},
+
+                datasets: [{
+                        label: 'Revenue',
+                        data: {{ chart_revenue | tojson }}
+                    },
+                    {
+                        label: 'Profit',
+                        data: {{ chart_profit | tojson }}
+                    }
+                ]
+            },
+
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

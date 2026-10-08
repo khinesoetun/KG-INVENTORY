@@ -1,0 +1,39 @@
+<div id="category-{{ category['id'] }}" class="max-w-xs bg-white p-4 rounded-lg shadow-sm">
+    <div class="mx-auto h-18 w-18 overflow-hidden rounded-full bg-slate-100 ">
+        {% if category["photo"] %}
+            <img src="{{ url_for('static',filename='uploads/categories-photo/' + category['photo']) }}">
+        {% endif %}
+    </div>
+    <div class="mt-2 text-center items-center justify-between">
+
+        <h2 class="text-lg font-semibold text-slate-800">
+            {{ category['name'] }}
+        </h2>
+
+        <span class="text-sm text-slate-500">
+            {{ category['product_count'] }} products
+        </span>
+    </div>
+
+
+    <div class="mt-5 flex justify-center gap-2">
+        <a href="{{ url_for("category.view_category",id=category['id']) }}"
+            class="w-16 bg-blue-600 rounded-lg py-2 text-sm text-white text-center">
+            View
+        </a>
+        <button type="button" @click="editOpen=true" hx-get="{{ url_for('category.edit_category', id=category['id']) }}"
+            hx-target="#edit-category-form" hx-swap="innerHTML"
+            class="w-16 bg-slate-100 rounded-lg px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors duration-200">
+            Edit
+        </button>
+
+        <!--comfirm modal for delete-->
+        <div x-data="{confirm:false}">
+            <button type="button" hx-get="{{ url_for('category.delete_confirm', id=category['id']) }}"
+                hx-target="#delete-confirm-modal" hx-swap="innerHTML" @click="deleteOpen=true"
+                class="w-16 bg-red-50 rounded-lg px-3 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-100 transition-colors duration-200">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>

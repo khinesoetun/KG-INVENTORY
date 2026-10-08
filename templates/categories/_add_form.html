@@ -1,0 +1,20 @@
+<form method="post" action="{{ url_for('category.add_category') }}" hx-post="{{ url_for('category.add_category') }}"
+    hx-target="#category-cards" hx-swap="outerHTML" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Category name" required
+        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none">
+    <template x-if="preview">
+        <img :src=" preview" class="mb-4 h-32 w-32 rounded-lg object-cover ">
+    </template>
+    <input type="file" name="photo" accept="image/*" @change="preview = URL.createObjectURL($event.target.files[0])"
+        required>
+    <button type="submit"
+        class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm outline-none cursor-pointer  hover:bg-blue-700 transition-colors duration-200 ">
+        Add Category
+    </button>
+
+</form>
+<button type="button" @click="open=false"
+    class="mt-2 w-full rounded-lg bg-slate-100 px-4 py-2 text-sm outline-noone cursor-pointer  hover:bg-slate-500 transition-colors duration-200">
+    Cancel</button>
+
+<div id="category-message"></div>

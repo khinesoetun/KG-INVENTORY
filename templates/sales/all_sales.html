@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}
+    All Sales
+{% endblock %}
+
+{% block content %}
+
+    <div class="p-8 space-y-6 bg-slate-50" x-data="{saleDetailOpen:false}">
+
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-800">
+            All Sales
+        </h1>
+        <form method="GET" action="{{ url_for('sales.all_sales') }}"
+            class="flex justify-end gap-4 rounded-xl bg-white p-5 shadow-sm">
+
+            <input type="text" name="sale_id" placeholder="Sale ID" value="{{ request.args.get('sale_id', '') }}"
+                class="w-32 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+
+            <input type="date" name="date" class="w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                value="{{ request.args.get('date', '') }}">
+
+            <button type="submit"
+                class="rounded-lg bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 cursor-pointer transition-colors duration-200">
+                Search
+            </button>
+            <a href="{{ url_for('sales.all_sales') }}"
+                class="rounded-lg bg-slate-100 px-5 py-2 text-sm text-slate-700 hover:bg-slate-200 cursor-pointer transition-colors duration-200">
+                Clear
+            </a>
+
+        </form>
+        <div class="max-h-[500px] overflow-auto rounded-xl bg-white p-6 shadow-sm">
+
+            <table class="w-full text-left table-auto">
+
+                <thead>
+                    <tr class="border-b border-slate-200">
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500">Sale ID</th>
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500">Items</th>
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500">Total</th>
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500">Received</th>
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500">Change</th>
+                        <th class="w-40 py-3 text-xs font-semibold uppercase text-slate-500">
+                            Date
+                        </th>
+                        <th class="py-3 text-xs font-semibold uppercase text-slate-500 text-right">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% if sales %}
+
+                        {% for sale in sales %}
+
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+
+                                <td class="py-3 text-sm font-medium text-slate-700">
+                                    #{{ sale['id'] }}
+                                </td>
+
+                                <td class="py-3 text-sm text-slate-600">
+                                    {{ sale['item_count'] }}
+                                </td>
+
+                                <td class="py-3 text-sm font-medium text-slate-800">
+                                    ${{ "%.2f"|format(sale['total']) }}
+                                </td>
+
+                                <td class="py-3 text-sm text-slate-600">
+                                    ${{ "%.2f"|format(sale['received']) }}
+                                </td>
+
+                                <td class="py-3 text-sm text-slate-600">
+                                    ${{ "%.2f"|format(sale['change']) }}
+                                </td>
+
+                                <td class="w-40 py-3 text-sm text-slate-500">
+                                    {{ sale['created_at'] }}
+                                </td>
+                                <td class="py-3 text-right">
+                                    <button type="button" hx-get="{{ url_for('sales.sale_detail', sale_id=sale['id']) }}"
+                                        @click="saleDetailOpen = true" hx-target="#sale-detail-modal" hx-swap="innerHTML"
+                                        class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-500 cursor-pointer transition-colors duration-200">
+                                        View
+                                    </button>
+
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-500">
+                                No sales found.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div id="sale-detail-modal" x-show="saleDetailOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+        </div>
+    </div>
+
+    </div>
+{% endblock %}

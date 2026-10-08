@@ -1,0 +1,100 @@
+<form id="product-form" method="POST" action="{{ url_for('product.products') }}"
+    hx-post="{{ url_for('product.products') }}" hx-target="#product-rows" hx-swap="beforeend"
+    hx-encoding="multipart/form-data" enctype="multipart/form-data">
+    <h2 class="text-lg font-semibold text-slate-900">
+        Add Product
+    </h2>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Product Name
+        </label>
+        <input type="text" name="name" placeholder="Enter product name"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none " required>
+    </div>
+    <div class="mt-4">
+
+        <label class="text-sm font-medium text-slate-700">
+            Category
+        </label>
+
+        <select name="category_id"
+            class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none" required>
+            <option value="">Select category</option>
+            {% for category in categories %}
+                <option value="{{ category['id'] }}">
+                    {{ category['name'] }}
+                </option>
+            {% endfor %}
+        </select>
+
+    </div>
+    <div class="mt-4">
+
+        <label class="text-sm font-medium text-slate-700">
+            Cost Price
+        </label>
+
+        <input type="number" name="cost_price" placeholder="Enter cost price"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none" required>
+
+    </div>
+    <div class="mt-4">
+
+        <label class="text-sm font-medium text-slate-700">
+            Selling Price
+        </label>
+
+        <input type="number" name="price" placeholder="Enter Selling Price"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none" required>
+
+    </div>
+    <div class="mt-4">
+
+        <label class="text-sm font-medium text-slate-700">
+            Stock
+        </label>
+
+        <input type="number" name="stock" placeholder="Enter stock quantity"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none" required>
+
+    </div>
+    <div class="mt-4">
+
+        <label class="text-sm font-medium text-slate-700">
+            Product Photo
+        </label>
+
+        <label
+            class="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center hover:border-blue-400">
+            <i data-lucide="image-plus" class="h-8 w-8 text-slate-400"></i>
+
+            <span class="mt-2 text-sm font-medium text-slate-600">
+                Click to upload photo
+            </span>
+
+            <span class="mt-1 text-xs text-slate-400">
+                PNG, JPG up to 5MB
+            </span>
+            <template x-if="preview">
+                <img :src="preview" class="mb-4 h-32 w-32 rounded-lg object-cover">
+            </template>
+            <input type="file" name="photo" accept="image/*" class="hidden"
+                @change="preview = URL.createObjectURL($event.target.files[0])" required>
+        </label>
+
+    </div>
+    <div class="mt-6 flex justify-end gap-3">
+
+        <button type="button" @click="open=false"
+            class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 cursor-pointer  hover:bg-slate-500 transition-colors duration-200">
+            Cancel
+        </button>
+
+        <button type="submit"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white cursor-pointer  hover:bg-blue-700 transition-colors duration-200">
+            Add Product
+        </button>
+
+    </div>
+</form>
+<div id="product-message"></div>

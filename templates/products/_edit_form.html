@@ -1,0 +1,72 @@
+<form method="POST" action="{{ url_for('product.edit_products', id=product['id']) }}"
+    hx-post="{{ url_for('product.edit_products', id=product['id']) }}" hx-target="#product-{{ product['id'] }}"
+    hx-swap="outerHTML" enctype="multipart/form-data">
+    <div>
+        <label class="text-sm font-medium text-slate-700">
+            Product Name
+        </label>
+
+        <input type="text" name="name" value="{{ product['name'] }}"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none">
+    </div>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Category
+        </label>
+        <select name="category_id"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none">
+            {% for category in categories %}
+                <option value="{{ category['id'] }}" {% if category['id'] == product['category_id'] %} selected {% endif %}>
+                    {{ category['name'] }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Selling Price
+        </label>
+
+        <input type="number" name="price" step="0.01" value="{{ product['price'] }}"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none">
+    </div>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Cost Price
+        </label>
+
+        <input type="number" name="cost_price" step="0.01" value="{{ product['cost_price'] }}"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none">
+    </div>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Stock
+        </label>
+
+        <input type="number" name="stock" value="{{ product['stock'] }}"
+            class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none">
+    </div>
+    <div class="mt-4">
+        <label class="text-sm font-medium text-slate-700">
+            Product Photo
+        </label>
+
+        {% if product['photo'] %}
+            <img src="{{ url_for('static', filename='uploads/' + product['photo']) }}"
+                class="mt-2 h-20 w-20 rounded-lg object-cover">
+        {% endif %}
+
+        <input type="file" name="photo" accept="image/*" class="mt-2 w-full text-sm">
+    </div>
+    <div class="mt-4 flex justify-end gap-2">
+        <button type="button" @click="editOpen=false"
+            class="mt-4 rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none cursor-pointer  hover:bg-slate-500 transition-colors duration-200">
+            Cancel
+        </button>
+        <button type="submit"
+            class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium cursor-pointer  hover:bg-blue-700 transition-colors duration-200">
+            Save Change
+        </button>
+    </div>
+</form>
+<div id="edit-product-message"></div>
