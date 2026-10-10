@@ -11,3 +11,5 @@ build/
 dist/
 *.exe
 .env
+# User-uploaded files
+static/uploads/
