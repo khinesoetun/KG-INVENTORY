@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, redirect, make_response
-from database import get_db
+from database import get_db, UPLOADS_PATH
 import sqlite3
+import os
 
 product_bp = Blueprint("product", __name__)
 
@@ -20,7 +21,7 @@ def products():
             cost_price = request.form["cost_price"]
             stock = request.form["stock"]
             photo = request.files["photo"]
-            photo.save("static/uploads/" + photo.filename)
+            photo.save(os.path.join(UPLOADS_PATH, photo.filename))
             cursor = db.execute(
                 """
                      INSERT INTO products(name,category_id,cost_price,price,stock,photo)
@@ -151,7 +152,7 @@ def edit_products(id):
             photo = request.files.get("photo")
             photo_name = product["photo"]
             if photo and photo.filename:
-                photo.save("static/uploads/" + photo.filename)
+                photo.save(os.path.join(UPLOADS_PATH, photo.filename))
                 photo_name = photo.filename
 
             db.execute(

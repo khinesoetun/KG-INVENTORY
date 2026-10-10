@@ -19,7 +19,7 @@
             <div
                 class="rounded-lg bg-white p-4  text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
 
-                <img src="{{ url_for('static',filename='uploads/')+product['photo'] }}"
+                <img src="{{ url_for('uploaded_file', filename=product['photo']) }}"
                     class="mx-auto h-32 w-32 rounded-full object-cover ">
 
                 <h2 class="mt-3 text-base font-medium text-slate-900">

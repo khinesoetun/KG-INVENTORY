@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from database import get_db
+from database import get_db, UPLOADS_PATH
 import sqlite3
+import os
 
 category_bp = Blueprint("category", __name__)
 
@@ -39,7 +40,7 @@ def add_category():
     if not name:
         return "Category name is required"
     if photo and photo.filename:
-        photo.save("static/uploads/categories-photo/" + photo_name)
+        photo.save(os.path.join(UPLOADS_PATH, "categories-photo", photo.filename))
     try:
         db = get_db()
         db.execute(
@@ -117,7 +118,7 @@ def edit_category(id):
             photo_name = category["photo"]
             if photo and photo.filename:
                 photo_name = photo.filename
-                photo.save("static/uploads/categories-photo/" + photo.filename)
+                photo.save(os.path.join(UPLOADS_PATH, "categories-photo", photo.filename))
             db.execute(
                 "UPDATE categories SET name = ? ,photo = ? WHERE id = ?",
                 (name, photo_name, id),

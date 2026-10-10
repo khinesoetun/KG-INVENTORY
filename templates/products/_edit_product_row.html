@@ -1,7 +1,7 @@
 <tr id="product-{{ product['id'] }}" class="border-b border-slate-100">
     <td class="px-6 py-4">{{ product["name"] }}</td>
     <td class="px-6 py-4">
-        <img src="{{ url_for('static',filename='uploads/' + product['photo']) }}"
+        <img src="{{ url_for('uploaded_file', filename=product['photo']) }}"
             class="h-10 w-10 rounded-lg object-cover">
     </td>
     <td class="px-6 py-4">{{ product["category"] }}</td>

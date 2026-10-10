@@ -3,7 +3,10 @@ __pycache__/
 
 venv/
 .venv/
-
 node_modules/
 
 *.db
+
+build/
+dist/
+*.exe
