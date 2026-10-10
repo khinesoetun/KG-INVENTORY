@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, url_for, redirect, make_response
 from database import get_db, UPLOADS_PATH
+from inventory.auth.routes import admin_required
 import sqlite3
 import os
 
@@ -7,6 +8,7 @@ product_bp = Blueprint("product", __name__)
 
 
 @product_bp.route("/products", methods=["GET", "POST"])
+@admin_required
 def products():
     message_type = None
     message = None
@@ -40,7 +42,7 @@ def products():
 
     product = db.execute(
         """
-    SELECT 
+    SELECT
         products.id,
         products.name,
         categories.name As category,
@@ -57,7 +59,7 @@ def products():
     ).fetchone()
 
     products = db.execute("""
-    SELECT 
+    SELECT
         products.id,
         products.name,
         categories.name AS category,
@@ -101,8 +103,8 @@ def products():
 # ===================================================================================================
 # ==================         DELETE ROUTE        ====================================================
 @product_bp.route("/products/<int:id>/delete", methods=["POST"])
+@admin_required
 def delete_product(id):
-
     db = get_db()
     print(id)
     db.execute("DELETE FROM products WHERE id = ?", (id,))
@@ -128,6 +130,7 @@ def delete_product(id):
 # ============================================================================================
 # ===================        EDIT ROUTE          ================================@product_bp.route("/products/<int:id>/edit", methods=["GET", "POST"])
 @product_bp.route("/products/<int:id>/edit", methods=["GET", "POST"])
+@admin_required
 def edit_products(id):
     message = None
     message_type = None
@@ -215,6 +218,7 @@ def edit_products(id):
 # =========================================================================================
 # =================      AUTO SEARCH ROUTE           ======================================
 @product_bp.route("/products/search")
+@admin_required
 def search_products():
     query = request.args.get("q", "")
 

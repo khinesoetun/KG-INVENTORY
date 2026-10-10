@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template
 from database import get_db
+from inventory.auth.routes import admin_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
 
 @dashboard_bp.route("/")
+@admin_required
 def home():
     db = get_db()
     total_categories = db.execute("SELECT COUNT(*) FROM categories").fetchone()[0]

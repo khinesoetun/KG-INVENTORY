@@ -1,16 +1,18 @@
 from flask import Blueprint, render_template, request, url_for, make_response
 from database import get_db
 import json
+from inventory.auth.routes import login_required
 
 sales_bp = Blueprint("sales", __name__)
 
 
 @sales_bp.route("/sales")
+@login_required
 def sales():
 
     db = get_db()
     products = db.execute("""
-    SELECT 
+    SELECT
     products.id,
     products.name,
     categories.name AS category,
@@ -55,6 +57,7 @@ def sales():
 # ======================================================================
 # ================ SEARCH PRODUCTS       ==============================
 @sales_bp.route("/sales/search")
+@login_required
 def search_products():
     query = request.args.get("q", "")
     category = request.args.get("categories", "")
@@ -138,6 +141,7 @@ def search_products():
 # ====================================================================================
 # =================      SALE ROUTE      =============================================
 @sales_bp.route("/sales/complete", methods=["POST"])
+@login_required
 def complete_sale():
     cart = request.form.get("cart")
     cart = json.loads(cart)
@@ -165,8 +169,8 @@ def complete_sale():
     sale = db.execute(
         """
       INSERT INTO sales(total,received,change)
-      VALUES(?,?,?) 
-   
+      VALUES(?,?,?)
+
     """,
         (total, received, change),
     )
@@ -215,6 +219,7 @@ def complete_sale():
 # ========================================================================================
 # =====================  ALL SALES ROUTE     =============================================
 @sales_bp.route("/sales/all")
+@login_required
 def all_sales():
     db = get_db()
     sale_id = request.args.get("sale_id", "")
@@ -298,6 +303,7 @@ def all_sales():
 # =================================================================================
 # ===============        SALE DETAIL ROUTE       =================================
 @sales_bp.route("/sales/<int:sale_id>")
+@login_required
 def sale_detail(sale_id):
     db = get_db()
 

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from database import get_db, UPLOADS_PATH
+from inventory.auth.routes import admin_required
 import sqlite3
 import os
 
@@ -7,6 +8,7 @@ category_bp = Blueprint("category", __name__)
 
 
 @category_bp.route("/categories")
+@admin_required
 def categories():
     db = get_db()
     categories = db.execute("""
@@ -29,6 +31,7 @@ def categories():
 # ===================================================================================
 # ===============        ADD CATEGORIES      ========================================
 @category_bp.route("/category/add", methods=["POST", "GET"])
+@admin_required
 def add_category():
     message = None
     message_type = None
@@ -81,6 +84,7 @@ def add_category():
 # =========================================================================================
 # ===============        VIEW CATOGORIES     ==============================================
 @category_bp.route("/categories/<int:id>")
+@admin_required
 def view_category(id):
     db = get_db()
     category = db.execute("SELECT * FROM categories WHERE id = ?", (id,)).fetchone()
@@ -99,6 +103,7 @@ def view_category(id):
 # ==========================================================================================
 # ==================     EDIT CATEGORY           ===========================================
 @category_bp.route("/categories/<int:id>/edit", methods=["GET", "POST"])
+@admin_required
 def edit_category(id):
     message = None
     message_type = None
@@ -145,7 +150,7 @@ def edit_category(id):
         (id,),
     ).fetchone()
     categories = db.execute("""
-        SELECT 
+        SELECT
         categories.id,
         categories.name,
         categories.photo,
@@ -170,6 +175,7 @@ def edit_category(id):
 # =================================================================================================
 # =====================      CATEGORIES SEARCH       ==============================================
 @category_bp.route("/categories/search")
+@admin_required
 def search_categories():
     query = request.args.get("q", "")
     db = get_db()
@@ -197,6 +203,7 @@ def search_categories():
 # =============================================================================================
 # ===================        DELETE CATEGORIES       ==========================================
 @category_bp.route("/categories/<int:id>/delete", methods=["POST"])
+@admin_required
 def delete_category(id):
     db = get_db()
     category = db.execute("SELECT * FROM categories WHERE id = ?", (id,)).fetchone()
@@ -205,7 +212,7 @@ def delete_category(id):
     db.execute("DELETE FROM categories WHERE id = ?", (id,))
     db.commit()
     categories = db.execute("""
-         SELECT 
+         SELECT
          categories.id,
          categories.name,
          categories.photo,
@@ -214,7 +221,7 @@ def delete_category(id):
          LEFT JOIN products
          ON categories.id = products.category_id
          GROUP BY categories.id
-         ORDER BY categories.name 
+         ORDER BY categories.name
          """).fetchall()
     db.close()
     return render_template("categories/_category_cards.html", categories=categories)
@@ -223,5 +230,6 @@ def delete_category(id):
 # =====================================================================================
 # ==============         delete comfirm route    ======================================
 @category_bp.route("/categories/<int:id>/delete-confirm")
+@admin_required
 def delete_confirm(id):
     return render_template("categories/_delete_confirm.html", id=id)

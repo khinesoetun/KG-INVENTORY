@@ -4,11 +4,13 @@ from io import BytesIO
 from flask import send_file
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
+from inventory.auth.routes import admin_required
 
 reports_bp = Blueprint("reports", __name__)
 
 
 @reports_bp.route("/reports")
+@admin_required
 def reports():
     db = get_db()
     revenue = db.execute(
@@ -100,6 +102,7 @@ GROUP BY sale_items.product_id;
 
 
 @reports_bp.route("/reports/pdf")
+@admin_required
 def reports_pdf():
     db = get_db()
 
