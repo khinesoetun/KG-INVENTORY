@@ -68,10 +68,7 @@ def add_category():
 
     except sqlite3.IntegrityError:
         if photo_name:
-            photo_path = os.path.join(
-    UPLOADS_PATH,
-    photo_name
-)
+            photo_path = os.path.join(UPLOADS_PATH, photo_name)
 
             if os.path.isfile(photo_path):
                 os.remove(photo_path)
@@ -141,12 +138,18 @@ def edit_category(id):
         try:
             name = request.form.get("name")
             photo = request.files.get("photo")
-            print("name:", name)
-            print("photo", photo)
             photo_name = category["photo"]
+
             if photo and photo.filename:
-                photo_name = photo.filename
-                photo.save(os.path.join(UPLOADS_PATH, "categories-photo", photo.filename))
+                photo_data = process_product_image(photo)
+
+                if photo_data:
+                    photo_name = f"categories-photo/{uuid.uuid4().hex}.jpg"
+                    photo_path = os.path.join(UPLOADS_PATH, photo_name)
+
+                    with open(photo_path, "wb") as f:
+                        f.write(photo_data)
+
             db.execute(
                 "UPDATE categories SET name = ? ,photo = ? WHERE id = ?",
                 (name, photo_name, id),

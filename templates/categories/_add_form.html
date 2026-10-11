@@ -2,11 +2,45 @@
     hx-target="#category-cards" hx-swap="outerHTML" enctype="multipart/form-data">
     <input type="text" name="name" placeholder="Category name" required
         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none">
+    <div class="mb-4">
+        <input type="file" name="photo" accept="image/*" id="category-photo" class="hidden" @change="
+            if ($event.target.files.length) {
+                preview = URL.createObjectURL($event.target.files[0])
+            }
+        " required>
+
+        <label for="category-photo"
+            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 p-6 transition-colors duration-200 hover:border-blue-500 hover:bg-blue-50">
+            <span class="text-sm font-medium text-slate-700">
+                Upload Photo
+            </span>
+
+            <span class="mt-1 text-xs text-slate-500">
+                JPG, PNG or WEBP
+            </span>
+        </label>
+    </div>
+
     <template x-if="preview">
-        <img :src=" preview" class="mb-4 h-32 w-32 rounded-lg object-cover ">
+        <div class="mb-4">
+            <img :src="preview" class="h-32 w-32 rounded-lg object-cover" alt="Category preview">
+
+            <div class="mt-3 flex gap-2">
+                <label for="category-photo"
+                    class="cursor-pointer rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100">
+                    Change Photo
+                </label>
+
+                <button type="button" @click="
+                    preview = null;
+                    document.getElementById('category-photo').value = ''
+                "
+                    class="cursor-pointer rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200">
+                    Remove
+                </button>
+            </div>
+        </div>
     </template>
-    <input type="file" name="photo" accept="image/*" @change="preview = URL.createObjectURL($event.target.files[0])"
-        required>
     <button type="submit"
         class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm outline-none cursor-pointer  hover:bg-blue-700 transition-colors duration-200 ">
         Add Category

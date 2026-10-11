@@ -13,6 +13,7 @@ product_bp = Blueprint("product", __name__)
 ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
+
 def process_product_image(photo):
     if not photo or not photo.filename:
         return None
@@ -51,7 +52,9 @@ def process_product_image(photo):
     image.save(output, format="JPEG", quality=85, optimize=True)
 
     return output.getvalue()
-#==========================================================================================
+
+
+# ==========================================================================================
 @product_bp.route("/products", methods=["GET", "POST"])
 @admin_required
 def products():
@@ -170,39 +173,28 @@ def products():
 def delete_product(id):
     db = get_db()
 
-    product = db.execute(
-        "SELECT photo FROM products WHERE id = ?",
-        (id,)
-    ).fetchone()
+    product = db.execute("SELECT photo FROM products WHERE id = ?", (id,)).fetchone()
 
     if product:
         photo_name = product["photo"]
 
-        db.execute(
-            "DELETE FROM products WHERE id = ?",
-            (id,)
-        )
+        db.execute("DELETE FROM products WHERE id = ?", (id,))
         db.commit()
 
         # Delete the photo only if no other product uses it
         if photo_name:
             remaining = db.execute(
-                "SELECT 1 FROM products WHERE photo = ? LIMIT 1",
-                (photo_name,)
+                "SELECT 1 FROM products WHERE photo = ? LIMIT 1", (photo_name,)
             ).fetchone()
 
             if not remaining:
                 filename = os.path.basename(photo_name)
-                photo_path = os.path.realpath(
-                    os.path.join(UPLOADS_PATH, filename)
-                )
+                photo_path = os.path.realpath(os.path.join(UPLOADS_PATH, filename))
                 upload_folder = os.path.realpath(UPLOADS_PATH)
 
                 if (
                     filename == photo_name
-                    and os.path.commonpath(
-                        [upload_folder, photo_path]
-                    ) == upload_folder
+                    and os.path.commonpath([upload_folder, photo_path]) == upload_folder
                     and os.path.isfile(photo_path)
                 ):
                     os.remove(photo_path)
@@ -259,9 +251,7 @@ def edit_products(id):
 
                 if photo_data:
                     new_photo_name = f"{uuid.uuid4().hex}.jpg"
-                    photo_path = os.path.join(
-                        UPLOADS_PATH, new_photo_name
-                    )
+                    photo_path = os.path.join(UPLOADS_PATH, new_photo_name)
 
                     with open(photo_path, "wb") as f:
                         f.write(photo_data)
@@ -275,10 +265,7 @@ def edit_products(id):
                     price = ?, stock = ?, photo = ?
                 WHERE id = ?
                 """,
-                (
-                    name, category_id, cost_price,
-                    price, stock, photo_name, id
-                ),
+                (name, category_id, cost_price, price, stock, photo_name, id),
             )
 
             db.commit()
@@ -290,10 +277,23 @@ def edit_products(id):
             old_photo = product["photo"]
 
             if new_photo_name and old_photo and old_photo != new_photo_name:
-                old_path = os.path.join(UPLOADS_PATH, old_photo)
 
-                if os.path.isfile(old_path):
-                    os.remove(old_path)
+                remaining = db.execute(
+                    "SELECT 1 FROM products WHERE photo = ? LIMIT 1", (old_photo,)
+                ).fetchone()
+
+                if not remaining:
+                    filename = os.path.basename(old_photo)
+                    old_path = os.path.realpath(os.path.join(UPLOADS_PATH, filename))
+                    upload_folder = os.path.realpath(UPLOADS_PATH)
+
+                    if (
+                        filename == old_photo
+                        and os.path.commonpath([upload_folder, old_path])
+                        == upload_folder
+                        and os.path.isfile(old_path)
+                    ):
+                        os.remove(old_path)
 
         except ValueError as e:
             if new_photo_name:
@@ -312,7 +312,7 @@ def edit_products(id):
 
             message = "Product name already exists."
             message_type = "error"
-        
+
         product = db.execute(
             """
             SELECT

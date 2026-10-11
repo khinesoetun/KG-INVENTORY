@@ -1,10 +1,11 @@
 <div id="category-cards" class="relative mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
     {% for category in categories %}
-        <div id="category-{{ category['id'] }}" class="max-w-xs bg-white p-4 rounded-lg shadow-sm">
+        <div id="category-{{ category['id'] }}"
+            class="max-w-xs bg-white p-4 rounded-lg shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer">
             <div class="mx-auto h-32 w-32 overflow-hidden rounded-full bg-slate-100">
                 {% if category["photo"] %}
-                    <img src="{{ url_for('uploaded_file', filename='categories-photo/' + category['photo']) }}"
+                    <img src="{{ url_for('uploaded_file', filename=category['photo']) }}"
                         class="mx-auto h-32 w-32 rounded-full object-cover " alt="{{ category['name'] }}">
                 {% endif %}
             </div>

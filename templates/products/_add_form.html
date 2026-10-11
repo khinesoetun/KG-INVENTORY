@@ -59,29 +59,51 @@
 
     </div>
     <div class="mt-4">
-
         <label class="text-sm font-medium text-slate-700">
             Product Photo
         </label>
 
-        <label
-            class="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center hover:border-blue-400">
-            <i data-lucide="image-plus" class="h-8 w-8 text-slate-400"></i>
+        <input type="file" name="photo" accept="image/*" id="product-photo" class="hidden" @change="
+            if ($event.target.files.length) {
+                preview = URL.createObjectURL($event.target.files[0])
+            }
+        " x-ref="productPhoto" required>
 
-            <span class="mt-2 text-sm font-medium text-slate-600">
-                Click to upload photo
-            </span>
+        <template x-if="!preview">
+            <label for="product-photo"
+                class="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center transition-colors hover:border-blue-400 hover:bg-blue-50">
+                <i data-lucide="image-plus" class="h-8 w-8 text-slate-400"></i>
 
-            <span class="mt-1 text-xs text-slate-400">
-                PNG, JPG up to 5MB
-            </span>
-            <template x-if="preview">
-                <img :src="preview" class="mb-4 h-32 w-32 rounded-lg object-cover">
-            </template>
-            <input type="file" name="photo" accept="image/*" class="hidden"
-                @change="preview = URL.createObjectURL($event.target.files[0])" required>
-        </label>
+                <span class="mt-2 text-sm font-medium text-slate-600">
+                    Upload Photo
+                </span>
 
+                <span class="mt-1 text-xs text-slate-400">
+                    PNG, JPG or WEBP
+                </span>
+            </label>
+        </template>
+
+        <template x-if="preview">
+            <div class="mt-3">
+                <img :src="preview" class="h-32 w-32 rounded-lg object-cover" alt="Product preview">
+
+                <div class="mt-3 flex gap-2">
+                    <label for="product-photo"
+                        class="cursor-pointer rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100">
+                        Change Photo
+                    </label>
+
+                    <button type="button" @click="
+                        preview = null;
+                        $refs.productPhoto.value = ''
+                    "
+                        class="cursor-pointer rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-200">
+                        Remove
+                    </button>
+                </div>
+            </div>
+        </template>
     </div>
     <div class="mt-6 flex justify-end gap-3">
 
