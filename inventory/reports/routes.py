@@ -2,8 +2,18 @@ from flask import Blueprint, render_template
 from database import get_db
 from io import BytesIO
 from flask import send_file
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer,
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from inventory.auth.routes import admin_required
 
 reports_bp = Blueprint("reports", __name__)
@@ -101,87 +111,147 @@ GROUP BY sale_items.product_id;
     )
 
 
+# ================================================================================================
 @reports_bp.route("/reports/pdf")
 @admin_required
 def reports_pdf():
     db = get_db()
 
-    revenue = db.execute("""
+    revenue_row = db.execute("""
         SELECT SUM(sale_items.subtotal) AS revenue
         FROM sale_items
         JOIN sales
             ON sale_items.sale_id = sales.id
         WHERE DATE(sales.created_at) >= DATE('now', 'start of month')
     """).fetchone()
-    cost = db.execute("""
-    SELECT SUM(sale_items.cost_price * sale_items.quantity) AS cost
-    FROM sale_items
-    JOIN sales
-        ON sale_items.sale_id = sales.id
-    WHERE DATE(sales.created_at) >= DATE('now', 'start of month')
-""").fetchone()
+
+    cost_row = db.execute("""
+        SELECT SUM(sale_items.cost_price * sale_items.quantity) AS cost
+        FROM sale_items
+        JOIN sales
+            ON sale_items.sale_id = sales.id
+        WHERE DATE(sales.created_at) >= DATE('now', 'start of month')
+    """).fetchone()
+
     product_performance = db.execute("""
-    SELECT
-        products.name,
-        sale_items.product_id,
-        SUM(sale_items.quantity) AS qty_sold,
-        SUM(sale_items.subtotal) AS revenue,
-        SUM(sale_items.cost_price * sale_items.quantity) AS cost
-    FROM sale_items
-    JOIN products
-        ON sale_items.product_id = products.id
-    JOIN sales
-        ON sale_items.sale_id = sales.id
-    WHERE DATE(sales.created_at) >= DATE('now', 'start of month')
-    GROUP BY sale_items.product_id
-""").fetchall()
-    product_rows = []
+        SELECT
+            products.name,
+            SUM(sale_items.quantity) AS qty_sold,
+            SUM(sale_items.subtotal) AS revenue,
+            SUM(sale_items.cost_price * sale_items.quantity) AS cost
+        FROM sale_items
+        JOIN products
+            ON sale_items.product_id = products.id
+        JOIN sales
+            ON sale_items.sale_id = sales.id
+        WHERE DATE(sales.created_at) >= DATE('now', 'start of month')
+        GROUP BY sale_items.product_id
+        ORDER BY revenue DESC
+    """).fetchall()
 
-    for row in product_performance:
-        profit = row["revenue"] - row["cost"]
-
-        product_rows.append(
-            {
-                "name": row["name"],
-                "qty_sold": row["qty_sold"],
-                "revenue": row["revenue"],
-                "cost": row["cost"],
-                "profit": profit,
-            }
-        )
-    cost = cost["cost"] or 0
-    revenue = revenue["revenue"] or 0
+    revenue = revenue_row["revenue"] or 0
+    cost = cost_row["cost"] or 0
     gross_profit = revenue - cost
     profit_margin = (gross_profit / revenue * 100) if revenue else 0
+
     buffer = BytesIO()
 
-    pdf = canvas.Canvas(buffer)
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=35,
+        leftMargin=35,
+        topMargin=35,
+        bottomMargin=35,
+    )
+    pdfmetrics.registerFont(
+        TTFont(
+            "NotoSansMyanmar",
+            "/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf",
+        )
+    )
+
+    styles = getSampleStyleSheet()
+    elements = [
+        Paragraph("Inventory Report", styles["Title"]),
+        Paragraph("Sales &amp; Profit Summary", styles["Normal"]),
+        Spacer(1, 20),
+    ]
+
+    summary_data = [
+        ["Total Revenue", "Total Cost", "Gross Profit", "Profit Margin"],
+        [
+            f"${revenue:.2f}",
+            f"${cost:.2f}",
+            f"${gross_profit:.2f}",
+            f"{profit_margin:.2f}%",
+        ],
+    ]
+
+    summary_table = Table(
+        summary_data,
+        colWidths=[180, 180, 180, 180],
+    )
+
+    summary_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F1629")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
+                ("TOPPADDING", (0, 0), (-1, -1), 12),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+            ]
+        )
+    )
+
+    elements.extend(
+        [
+            summary_table,
+            Spacer(1, 30),
+            Paragraph("Product Performance", styles["Heading2"]),
+            Spacer(1, 10),
+        ]
+    )
+
     data = [["Product", "Qty Sold", "Revenue", "Cost", "Profit"]]
 
-    for product in product_rows:
+    for product in product_performance:
+        product_revenue = product["revenue"] or 0
+        product_cost = product["cost"] or 0
+        product_profit = product_revenue - product_cost
+
         data.append(
             [
                 product["name"],
-                product["qty_sold"],
-                f"${product['revenue']:.2f}",
-                f"${product['cost']:.2f}",
-                f"${product['profit']:.2f}",
+                str(product["qty_sold"] or 0),
+                f"${product_revenue:.2f}",
+                f"${product_cost:.2f}",
+                f"${product_profit:.2f}",
             ]
         )
 
-    table = Table(data, colWidths=[150, 70, 90, 90, 90])
+    table = Table(
+        data,
+        colWidths=[300, 100, 120, 120, 120],
+        repeatRows=1,
+    )
 
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), "#0F1629"),
-                ("TEXTCOLOR", (0, 0), (-1, 0), "white"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("TEXTCOLOR", (0, 1), (-1, -1), "#334155"),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F1629")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#334155")),
                 ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
                 ("ALIGN", (0, 0), (0, -1), "LEFT"),
-                ("GRID", (0, 0), (-1, -1), 0.5, "#E2E8F0"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
                 ("TOPPADDING", (0, 0), (-1, -1), 8),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
@@ -190,31 +260,9 @@ def reports_pdf():
         )
     )
 
-    table.wrapOn(pdf, 500, 300)
-    table.drawOn(pdf, 50, 530)
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawString(50, 800, "Inventory Report")
+    elements.append(table)
 
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(50, 782, "Sales & Profit Summary")
-
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(50, 750, "Total Revenue")
-    pdf.drawString(300, 750, "Total Cost")
-
-    pdf.setFont("Helvetica", 12)
-    pdf.drawString(50, 732, f"${revenue:.2f}")
-    pdf.drawString(300, 732, f"${cost:.2f}")
-
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(50, 700, "Gross Profit")
-    pdf.drawString(300, 700, "Profit Margin")
-
-    pdf.setFont("Helvetica", 12)
-    pdf.drawString(50, 682, f"${gross_profit:.2f}")
-    pdf.drawString(300, 682, f"{profit_margin:.2f}%")
-
-    pdf.save()
+    pdf.build(elements)
 
     buffer.seek(0)
 

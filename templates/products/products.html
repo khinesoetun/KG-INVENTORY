@@ -22,7 +22,7 @@
                 <input type="text" name="q" placeholder="Search products......."
                     class="w-80 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none"
                     hx-get="{{ url_for('product.search_products') }}" hx-trigger="keyup changed delay:300ms"
-                    hx-target="#product-table" hx-swap="outerHTML">
+                    hx-target="#product-list" hx-swap="innerHTML">
 
                 <button type="button" @click="open = true"
                     class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white cursor-pointer transition duration-200">
@@ -40,11 +40,10 @@
                 </div>
             </div>
         </div>
-        <!-- ===== Product Table ===== -->
-        <div class="max-h-[700px] overflow-auto">
-            <div class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm">
-                {% include "products/_product_table.html" %}
-            </div>
+        <!-- ===== Product Table & Pagination ===== -->
+        <!-- ===== Product Table & Pagination ===== -->
+        <div id="product-list">
+            {% include "products/_product_list.html" %}
         </div>
         <!-- ===== Edit Product Modal ===== -->
         <div x-show="editOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

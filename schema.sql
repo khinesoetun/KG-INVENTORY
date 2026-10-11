@@ -40,3 +40,24 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'staff'
 , profile_photo TEXT);
+
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    product_id INTEGER NOT NULL,
+
+    movement_type TEXT NOT NULL
+        CHECK (movement_type IN ('IN', 'OUT', 'INITIAL')),
+
+    quantity INTEGER NOT NULL
+        CHECK (quantity > 0),
+
+    reason TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    user_id INTEGER,
+
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);

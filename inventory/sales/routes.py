@@ -1,7 +1,13 @@
-from flask import Blueprint, render_template, request, url_for, make_response
+from flask import Blueprint, render_template, request, url_for, make_response, session
 from database import get_db
 import json
 from inventory.auth.routes import login_required
+from io import BytesIO
+from flask import send_file
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 sales_bp = Blueprint("sales", __name__)
 
@@ -196,6 +202,25 @@ def complete_sale():
         """,
             (sale.lastrowid, product["id"], quantity, price, cost_price, subtotal),
         )
+        db.execute(
+            """
+            INSERT INTO stock_movements (
+                product_id,
+                movement_type,
+                quantity,
+                reason,
+                user_id
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                product["id"],
+                "OUT",
+                quantity,
+                f"Sale #{sale.lastrowid}",
+                session.get("user_id"),
+            ),
+        )
 
     db.commit()
     products = db.execute("""
@@ -298,6 +323,114 @@ def all_sales():
             ORDER BY sales.id DESC
                 """).fetchall()
     return render_template("sales/all_sales.html", sales=sales)
+
+
+# =========================================================================
+@sales_bp.route("/sales/all/pdf")
+@login_required
+def all_sales_pdf():
+    db = get_db()
+
+    sale_id = request.args.get("sale_id", "")
+    date = request.args.get("date", "")
+
+    query = """
+        SELECT
+            sales.id,
+            sales.total,
+            sales.received,
+            sales.change,
+            sales.created_at,
+            COUNT(sale_items.id) AS item_count
+        FROM sales
+        LEFT JOIN sale_items
+            ON sales.id = sale_items.sale_id
+    """
+
+    conditions = []
+    params = []
+
+    if sale_id:
+        conditions.append("sales.id = ?")
+        params.append(sale_id)
+
+    if date:
+        conditions.append("DATE(sales.created_at) = ?")
+        params.append(date)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    query += """
+        GROUP BY sales.id
+        ORDER BY sales.id DESC
+    """
+
+    sales = db.execute(query, params).fetchall()
+
+    buffer = BytesIO()
+
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=25,
+        leftMargin=25,
+        topMargin=30,
+        bottomMargin=30,
+    )
+
+    styles = getSampleStyleSheet()
+
+    elements = [
+        Paragraph("All Sales Report", styles["Title"]),
+        Spacer(1, 20),
+    ]
+
+    data = [["Sale ID", "Items", "Total", "Received", "Change", "Date"]]
+
+    for sale in sales:
+        data.append(
+            [
+                f"#{sale['id']}",
+                str(sale["item_count"]),
+                f"${sale['total']:.2f}",
+                f"${sale['received']:.2f}",
+                f"${sale['change']:.2f}",
+                str(sale["created_at"]),
+            ]
+        )
+
+    table = Table(
+        data,
+        colWidths=[90, 90, 120, 120, 120, 220],
+        repeatRows=1,
+        hAlign="LEFT",
+    )
+
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1E40AF")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("PADDING", (0, 0), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+
+    elements.append(table)
+    pdf.build(elements)
+
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="all_sales.pdf",
+    )
 
 
 # =================================================================================

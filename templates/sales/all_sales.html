@@ -30,6 +30,12 @@
             </a>
 
         </form>
+        <div class="flex justify-end">
+            <a href="{{ url_for('sales.all_sales_pdf', sale_id=request.args.get('sale_id', ''), date=request.args.get('date', '')) }}"
+                class="rounded-lg bg-emerald-600 px-5 py-2 text-sm text-white hover:bg-emerald-700 cursor-pointer transition-colors duration-200">
+                Export PDF
+            </a>
+        </div>
         <div class="max-h-[500px] overflow-auto rounded-xl bg-white p-6 shadow-sm">
 
             <table class="w-full text-left table-auto">

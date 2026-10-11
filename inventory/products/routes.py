@@ -1,4 +1,12 @@
-from flask import Blueprint, render_template, request, url_for, redirect, make_response
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    url_for,
+    redirect,
+    make_response,
+    session,
+)
 from database import get_db, UPLOADS_PATH
 from inventory.auth.routes import admin_required
 import sqlite3
@@ -62,69 +70,127 @@ def products():
     message = None
     product_id = None
     photo_name = None
-    error = False
+    page = request.args.get("page", 1, type=int)
+    page = max(page, 1)
     db = get_db()
+
     if request.method == "POST":
         try:
-            name = request.form["name"]
-            category_id = request.form["category_id"]
-            price = request.form["price"]
-            cost_price = request.form["cost_price"]
-            stock = request.form["stock"]
+            name = request.form["name"].strip()
+            category_id = int(request.form["category_id"])
+            price = float(request.form["price"])
+            cost_price = float(request.form["cost_price"])
+            initial_stock = int(request.form["stock"])
+
+            if not name:
+                raise ValueError("Product name is required.")
+
+            if price < 0 or cost_price < 0:
+                raise ValueError("Prices cannot be negative.")
+
+            if initial_stock < 0:
+                raise ValueError("Initial stock cannot be negative.")
+
             photo = request.files.get("photo")
             photo_data = process_product_image(photo)
 
-            photo_name = None
-
             if photo_data:
                 photo_name = f"{uuid.uuid4().hex}.jpg"
+                photo_path = os.path.join(UPLOADS_PATH, photo_name)
 
-                with open(os.path.join(UPLOADS_PATH, photo_name), "wb") as f:
+                with open(photo_path, "wb") as f:
                     f.write(photo_data)
-            cursor = db.execute(
-                """
-                     INSERT INTO products(name,category_id,cost_price,price,stock,photo)
-                     VALUES (?,?,?,?,?,?)
+
+            # Save Product and Initial Stock History together.
+            with db:
+                cursor = db.execute(
+                    """
+                    INSERT INTO products (
+                        name, category_id, cost_price,
+                        price, stock, photo
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                (name, category_id, cost_price, price, stock, photo_name),
-            )
-            db.commit()
-            product_id = cursor.lastrowid
-            message = "Product addede successfully"
+                    (
+                        name,
+                        category_id,
+                        cost_price,
+                        price,
+                        initial_stock,
+                        photo_name,
+                    ),
+                )
+
+                product_id = cursor.lastrowid
+
+                if initial_stock > 0:
+                    db.execute(
+                        """
+                        INSERT INTO stock_movements (
+                            product_id,
+                            movement_type,
+                            quantity,
+                            reason,
+                            user_id
+                        )
+                        VALUES (?, 'INITIAL', ?, 'Initial Stock', ?)
+                        """,
+                        (
+                            product_id,
+                            initial_stock,
+                            session.get("user_id"),
+                        ),
+                    )
+
+            message = "Product added successfully."
             message_type = "success"
+
         except ValueError as e:
             message = str(e)
             message_type = "error"
 
         except sqlite3.IntegrityError:
-            if photo_name:
+            message = "Product name already exists."
+            message_type = "error"
+
+        finally:
+            # Remove the newly uploaded photo if saving failed.
+            if message_type == "error" and photo_name:
                 photo_path = os.path.join(UPLOADS_PATH, photo_name)
 
                 if os.path.isfile(photo_path):
                     os.remove(photo_path)
 
-            message = "Product name already exists."
-            message_type = "error"
+    product = None
 
-    product = db.execute(
+    if product_id is not None and message_type == "success":
+        product = db.execute(
+            """
+            SELECT
+                products.id,
+                products.name,
+                categories.name AS category,
+                products.price,
+                products.cost_price,
+                products.stock,
+                products.photo
+            FROM products
+            JOIN categories
+                ON products.category_id = categories.id
+            WHERE products.id = ?
+            """,
+            (product_id,),
+        ).fetchone()
+    per_page = 10
+
+    total_count = db.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+
+    total_pages = max(1, (total_count + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+
+    products = db.execute(
         """
-    SELECT
-        products.id,
-        products.name,
-        categories.name As category,
-        products.price,
-        products.cost_price,
-        products.stock,
-        products.photo
-    FROM products
-    JOIN categories
-    ON products.category_id = categories.id
-    WHERE products.id =?
-    """,
-        (product_id,),
-    ).fetchone()
-
-    products = db.execute("""
     SELECT
         products.id,
         products.name,
@@ -135,19 +201,28 @@ def products():
         products.photo
     FROM products
     JOIN categories
-    ON products.category_id = categories.id
-""").fetchall()
+        ON products.category_id = categories.id
+    ORDER BY products.id DESC
+    LIMIT ? OFFSET ?
+    """,
+        (per_page, offset),
+    ).fetchall()
 
     categories = db.execute("""
     SELECT id, name
     FROM categories
     ORDER BY name
-    """).fetchall()
+""").fetchall()
+
     db.close()
+
     if request.headers.get("HX-Request"):
         if product:
             response = make_response(
-                render_template("products/add_product_row.html", product=product)
+                render_template(
+                    "products/add_product_row.html",
+                    product=product,
+                )
                 + render_template(
                     "products/_product_message.html",
                     message=message,
@@ -158,11 +233,22 @@ def products():
             return response
 
         return render_template(
-            "products/_product_message.html", message=message, message_type=message_type
+            "products/_product_message.html",
+            message=message,
+            message_type=message_type,
         )
 
     return render_template(
-        "products/products.html", products=products, categories=categories
+        "products/products.html",
+        products=products,
+        categories=categories,
+        page=page,
+        total_pages=total_pages,
+        total_count=total_count,
+        per_page=per_page,
+        start_item=offset + 1 if total_count else 0,
+        end_item=offset + len(products),
+        query="",
     )
 
 
@@ -241,7 +327,6 @@ def edit_products(id):
             category_id = request.form["category_id"]
             price = request.form["price"]
             cost_price = request.form["cost_price"]
-            stock = request.form["stock"]
 
             photo = request.files.get("photo")
             photo_name = product["photo"]
@@ -262,10 +347,10 @@ def edit_products(id):
                 """
                 UPDATE products
                 SET name = ?, category_id = ?, cost_price = ?,
-                    price = ?, stock = ?, photo = ?
+                    price = ?, photo = ?
                 WHERE id = ?
                 """,
-                (name, category_id, cost_price, price, stock, photo_name, id),
+                (name, category_id, cost_price, price, photo_name, id),
             )
 
             db.commit()
@@ -361,9 +446,23 @@ def edit_products(id):
 @admin_required
 def search_products():
     query = request.args.get("q", "")
-
+    page = request.args.get("page", 1, type=int)
+    page = max(page, 1)
+    per_page = 10
     db = get_db()
-
+    total_count = db.execute(
+        """
+            SELECT COUNT(*)
+            FROM products
+            JOIN categories
+                ON products.category_id = categories.id
+            WHERE products.name LIKE ?
+            """,
+        (f"%{query}%",),
+    ).fetchone()[0]
+    total_pages = max(1, (total_count + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
     products = db.execute(
         """
         SELECT
@@ -378,10 +477,22 @@ def search_products():
         JOIN categories
         ON products.category_id = categories.id
         WHERE products.name LIKE ?
+ORDER BY products.id DESC
+LIMIT ? OFFSET ?
     """,
-        (f"%{query}%",),
+        (f"%{query}%", per_page, offset),
     ).fetchall()
 
     db.close()
 
-    return render_template("products/_product_table.html", products=products)
+    return render_template(
+        "products/_product_list.html",
+        products=products,
+        page=page,
+        total_pages=total_pages,
+        total_count=total_count,
+        per_page=per_page,
+        start_item=offset + 1 if total_count else 0,
+        end_item=offset + len(products),
+        query=query,
+    )

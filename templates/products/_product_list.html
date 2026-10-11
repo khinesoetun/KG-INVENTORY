@@ -1,0 +1,43 @@
+<div class="max-h-[700px] overflow-auto">
+    <div class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm">
+        {% include "products/_product_table.html" %}
+    </div>
+</div>
+
+<!-- ===== Pagination ===== -->
+<div class="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4">
+
+    <p class="text-sm text-slate-500">
+        Showing
+        <span class="font-medium">{{ start_item }}</span>
+        to
+        <span class="font-medium">{{ end_item }}</span>
+        of
+        <span class="font-medium">{{ total_count }}</span>
+        products
+    </p>
+
+    <div class="flex items-center gap-2">
+        <button type="button" {% if page <= 1 %}disabled{% endif %}
+            hx-get="{{ url_for('product.search_products', q=query, page=page-1) }}" hx-target="#product-list"
+            hx-swap="innerHTML"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm
+            {% if page <= 1 %}text-slate-400 cursor-not-allowed{% else %}text-slate-700 cursor-pointer hover:bg-slate-50{% endif %}">
+            Previous
+        </button>
+
+        <span class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">
+            {{ page }}
+        </span>
+
+        <button type="button" {% if page >= total_pages %}disabled{% endif %}
+            hx-get="{{ url_for('product.search_products', q=query, page=page+1) }}" hx-target="#product-list"
+            hx-swap="innerHTML"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm
+            {% if page >= total_pages %}text-slate-400 cursor-not-allowed{% else %}text-slate-700 cursor-pointer hover:bg-slate-50{% endif %}">
+            Next
+        </button>
+    </div>
+
+</div>
+<!-- ===== End Pagination ===== -->

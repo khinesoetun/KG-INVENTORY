@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="space-y-6">
+
+        <!-- Page Header -->
+        <div>
+            <h1 class="text-2xl font-semibold text-slate-800">
+                Stock Movement
+            </h1>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Manage stock IN, OUT and movement history.
+            </p>
+        </div>
+
+        <!-- Movement Form -->
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            {% if message %}
+                <div
+                    class="mb-5 flex items-start gap-3 rounded-xl border px-4 py-3.5
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {% if message_type == 'success' %}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                border-emerald-200 bg-emerald-50/80 text-emerald-800
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {% else %}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                border-rose-200 bg-rose-50/80 text-rose-800
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {% endif %}">
+
+                    <i data-lucide="{% if message_type == 'success' %}check-circle{% else %}alert-circle{% endif %}"
+                        class="mt-0.5 h-5 w-5 shrink-0"></i>
+
+                    <div>
+                        <p class="text-sm font-semibold">
+                            {% if message_type == 'success' %}
+                                Success
+                            {% else %}
+                                Action failed
+                            {% endif %}
+                        </p>
+
+                        <p class="mt-1 text-sm">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            <h2 class="text-lg font-semibold text-slate-800">
+                Record Stock Movement
+            </h2>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Record stock received or stock removed.
+            </p>
+
+            <!-- Form fields will go here -->
+            <form method="POST" action="{{ url_for('stock_movements.stock_movements') }}" class="mt-6 space-y-5">
+
+                <!-- Product -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">
+                        Product
+                    </label>
+
+                    <div class="relative mt-2">
+                        <input type="hidden" name="product_id" id="stock-product-id" required>
+
+                        <input type="text" id="stock-product-search" name="q" placeholder="Search product name..."
+                            autocomplete="off"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            hx-get="{{ url_for('stock_movements.search_products') }}"
+                            hx-trigger="keyup changed delay:300ms, focus" hx-target="#stock-product-results"
+                            hx-swap="outerHTML">
+
+                        <i data-lucide="search"
+                            class="pointer-events-none absolute right-4 top-3 h-4 w-4 text-slate-400"></i>
+
+                        <div id="stock-product-results" class="absolute z-30 mt-2 w-full">
+                        </div>
+                    </div>
+
+                    <div id="selected-stock-product" class="mt-3 hidden rounded-lg border border-blue-100 bg-blue-50 p-3">
+
+                        <p class="text-sm font-medium text-blue-700">
+                            Selected Product
+                        </p>
+
+                        <p id="selected-stock-name" class="mt-1 text-sm text-slate-600">
+                        </p>
+
+                        <p class="mt-2 text-sm text-slate-600">
+                            Current Stock:
+                            <span id="selected-stock-count" class="font-semibold text-blue-700">
+                            </span>
+                        </p>
+                    </div>
+                    <div id="expected-stock-box" class="mt-2 hidden rounded-lg border border-slate-200 bg-white p-3">
+
+                        <p class="text-sm font-medium text-slate-500">
+                            Expected Stock After Movement
+                        </p>
+
+                        <p id="expected-stock-count" class="mt-1 text-xl font-semibold text-slate-800">
+                            —
+                        </p>
+                    </div>
+                </div>
+                <!-- Movement Type -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">
+                        Movement Type
+                    </label>
+
+                    <div class="mt-2 grid grid-cols-2 gap-3">
+
+                        <label
+                            class="flex cursor-pointer items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                            <input type="radio" name="movement_type" value="IN" onchange="updateExpectedStock()"
+                                class="h-4 w-4 accent-emerald-600">
+
+                            <div>
+                                <p class="text-sm font-semibold text-emerald-700">
+                                    Stock IN
+                                </p>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Add stock
+                                </p>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex cursor-pointer items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4">
+                            <input type="radio" name="movement_type" value="OUT" onchange="updateExpectedStock()"
+                                class="h-4 w-4 accent-rose-600">
+
+                            <div>
+                                <p class="text-sm font-semibold text-rose-700">
+                                    Stock OUT
+                                </p>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Remove stock
+                                </p>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">
+                        Quantity
+                    </label>
+
+                    <input type="number" name="quantity" min="1" step="1" placeholder="Enter quantity"
+                        oninput="updateExpectedStock()"
+                        class="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                </div>
+
+                <!-- Reason -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">
+                        Reason / Note
+                    </label>
+
+                    <textarea name="reason" rows="3" placeholder="Why is the stock moving?"
+                        class="mt-2 w-full resize-y rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"></textarea>
+                </div>
+
+                <!-- Submit -->
+                <div class="flex justify-end border-t border-slate-100 pt-5">
+
+                    <button type="submit"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+
+                        <i data-lucide="save" class="h-4 w-4"></i>
+
+                        Save Movement
+                    </button>
+
+                </div>
+
+            </form>
+        </section>
+
+        <!-- Movement History -->
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+            <h2 class="text-lg font-semibold text-slate-800">
+                Movement History
+            </h2>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Review previous stock movements.
+            </p>
+            <!-- History Filters -->
+            <!-- History Filters -->
+            <div id="movement-filters" class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+                <!-- Product Search -->
+                <input type="text" name="q" placeholder="Search product..."
+                    hx-get="{{ url_for('stock_movements.filter_movements') }}" hx-trigger="keyup changed delay:300ms"
+                    hx-include="#movement-filters [name]" hx-target="#movement-history-body" hx-swap="outerHTML"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+                <!-- Movement Type -->
+                <select name="movement_type" hx-get="{{ url_for('stock_movements.filter_movements') }}" hx-trigger="change"
+                    hx-include="#movement-filters [name]" hx-target="#movement-history-body" hx-swap="outerHTML"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">All movement types</option>
+                    <option value="IN">Stock IN</option>
+                    <option value="OUT">Stock OUT</option>
+                    <option value="INITIAL">Initial Stock</option>
+                </select>
+
+                <!-- Start Date -->
+                <input type="date" name="start_date" aria-label="Start date"
+                    hx-get="{{ url_for('stock_movements.filter_movements') }}" hx-trigger="change"
+                    hx-include="#movement-filters [name]" hx-target="#movement-history-body" hx-swap="outerHTML"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+                <!-- End Date -->
+                <input type="date" name="end_date" aria-label="End date"
+                    hx-get="{{ url_for('stock_movements.filter_movements') }}" hx-trigger="change"
+                    hx-include="#movement-filters [name]" hx-target="#movement-history-body" hx-swap="outerHTML"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+            </div>
+            <!-- History table will go here -->
+            <div class="mt-6 max-h-[420px] overflow-auto rounded-lg border border-slate-100">
+
+                <table class="w-full min-w-[700px] text-left text-sm">
+
+                    <thead>
+                        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+
+                            <th class="px-4 py-3 font-medium">Date</th>
+
+                            <th class="px-4 py-3 font-medium">Product</th>
+
+                            <th class="px-4 py-3 font-medium">Type</th>
+
+                            <th class="px-4 py-3 text-right font-medium">Quantity</th>
+
+                            <th class="px-4 py-3 font-medium">Reason / Note</th>
+
+                            <th class="px-4 py-3 font-medium">User</th>
+
+                        </tr>
+                    </thead>
+
+                    {% include "stock_movements/_movement_rows.html" %}
+
+                </table>
+
+            </div>
+        </section>
+
+    </div>
+    <script>
+        function selectStockProduct(id, name) {
+            document.getElementById("stock-product-id").value = id;
+
+            const searchInput = document.getElementById("stock-product-search");
+            searchInput.value = name;
+
+            document.getElementById("selected-stock-name").textContent = name;
+
+            document.getElementById("selected-stock-count").textContent =
+                document.querySelector(
+                    `[data-product-id="${id}"]`
+                ).closest("button").querySelector("span:last-child").textContent
+                .replace("Stock:", "").trim();
+
+            document.getElementById("selected-stock-product").classList.remove("hidden");
+
+            document.getElementById("stock-product-results").innerHTML = "";
+        }
+
+        function updateExpectedStock() {
+            const stockText = document.getElementById("selected-stock-count").textContent;
+            const currentStock = parseInt(stockText, 10);
+
+            const movement = document.querySelector(
+                'input[name="movement_type"]:checked'
+            );
+
+            const quantityInput = document.querySelector(
+                'input[name="quantity"]'
+            );
+
+            const expectedBox = document.getElementById("expected-stock-box");
+            const expectedCount = document.getElementById("expected-stock-count");
+
+            if (!movement || !quantityInput.value || isNaN(currentStock)) {
+                expectedBox.classList.add("hidden");
+                return;
+            }
+
+            const quantity = parseInt(quantityInput.value, 10);
+
+            if (!Number.isInteger(quantity) || quantity < 1) {
+                expectedBox.classList.add("hidden");
+                return;
+            }
+
+            let expectedStock;
+
+            if (movement.value === "IN") {
+                expectedStock = currentStock + quantity;
+            } else {
+                expectedStock = currentStock - quantity;
+            }
+
+            expectedCount.textContent = expectedStock.toLocaleString();
+            expectedBox.classList.remove("hidden");
+        }
+    </script>
+{% endblock %}
