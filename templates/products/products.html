@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Products
+    KG Inventory | Products
 {% endblock %}
 
 {% block content %}
@@ -41,7 +41,10 @@
             </div>
         </div>
         <!-- ===== Product Table & Pagination ===== -->
-        <!-- ===== Product Table & Pagination ===== -->
+        <!-- Product Message -->
+        <div id="product-message" class="mb-4 text-sm"></div>
+
+        <!-- Product Table & Pagination -->
         <div id="product-list">
             {% include "products/_product_list.html" %}
         </div>

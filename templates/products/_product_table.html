@@ -1,4 +1,7 @@
 <!-- TEST-123 -->
+{% if message %}
+    {% include "products/_product_message.html" %}
+{% endif %}
 <table id="product-table" class="w-full text-left text-sm">
     <thead class="border-b border-slate-200 bg-slate-50">
         <tr>

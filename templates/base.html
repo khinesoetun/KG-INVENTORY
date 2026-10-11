@@ -38,9 +38,9 @@
                 <ul class="space-y-2">
                     <a href="{{ url_for('dashboard.home') }}" class="flex items-center gap-3 rounded-lg px-4 py-2 text-sm
     {% if session.get('role') == 'admin' %}
-                                                                                                                                            bg-[#1E293B] text-white
+                                                                                                                                                bg-[#1E293B] text-white
     {% else %}
-                                                                                                                                            cursor-not-allowed text-slate-500
+                                                                                                                                                cursor-not-allowed text-slate-500
     {% endif %}" {% if session.get('role') != 'admin' %} aria-disabled="true" tabindex="-1" onclick="return false;"
                         {% endif %}>
                         <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
@@ -48,9 +48,9 @@
                     </a>
                     <a href="{{ url_for('product.products') }}" class="flex items-center gap-3 rounded-lg px-4 py-2 text-sm
     {% if session.get('role') == 'admin' %}
-                                                                                                                        text-slate-300 transition hover:bg-slate-800 hover:text-white
+                                                                                                                            text-slate-300 transition hover:bg-slate-800 hover:text-white
     {% else %}
-                                                                                                                        cursor-not-allowed text-slate-500
+                                                                                                                            cursor-not-allowed text-slate-500
     {% endif %}" {% if session.get('role') != 'admin' %} aria-disabled="true" tabindex="-1" onclick="return false;"
                         {% endif %}>
                         <i data-lucide="package" class="h-5 w-5"></i>
@@ -58,9 +58,9 @@
                     </a>
                     <a href="{{ url_for('category.categories') }}" class="flex items-center gap-3 rounded-lg px-4 py-2 text-sm
     {% if session.get('role') == 'admin' %}
-                                                                                                            text-slate-300 transition hover:bg-slate-800 hover:text-white
+                                                                                                                text-slate-300 transition hover:bg-slate-800 hover:text-white
     {% else %}
-                                                                                                            cursor-not-allowed text-slate-500
+                                                                                                                cursor-not-allowed text-slate-500
     {% endif %}" {% if session.get('role') != 'admin' %} aria-disabled="true" tabindex="-1" onclick="return false;"
                         {% endif %}>
                         <i data-lucide="tags" class="h-5 w-5"></i>
@@ -73,9 +73,9 @@
                     </a>
                     <a href="{{ url_for('stock_movements.stock_movements') }}" class="flex items-center gap-3 rounded-lg px-4 py-2 text-sm
     {% if session.get('role') == 'admin' %}
-                            text-slate-300 transition hover:bg-slate-800 hover:text-white
+                                text-slate-300 transition hover:bg-slate-800 hover:text-white
     {% else %}
-                            cursor-not-allowed text-slate-500
+                                cursor-not-allowed text-slate-500
     {% endif %}" {% if session.get('role') != 'admin' %} aria-disabled="true" tabindex="-1" onclick="return false;"
                         {% endif %}>
                         <i data-lucide="arrow-left-right" class="h-5 w-5"></i>
@@ -83,9 +83,9 @@
                     </a>
                     <a href="{{ url_for('reports.reports') }}" class="flex items-center gap-3 rounded-lg px-4 py-2 text-sm
     {% if session.get('role') == 'admin' %}
-                                                                                            text-slate-300 transition hover:bg-slate-800 hover:text-white
+                                                                                                text-slate-300 transition hover:bg-slate-800 hover:text-white
     {% else %}
-                                                                                            cursor-not-allowed text-slate-500
+                                                                                                cursor-not-allowed text-slate-500
     {% endif %}" {% if session.get('role') != 'admin' %} aria-disabled="true" tabindex="-1" onclick="return false;"
                         {% endif %}>
                         <i data-lucide="bar-chart-3" class="h-5 w-5"></i>

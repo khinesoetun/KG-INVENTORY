@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Sales
+    KG Inventory | Sales
 {% endblock %}
 {% block content %}
 
@@ -141,13 +141,13 @@
                                 Cancel
                             </button>
                             <button type=" submit" hx-post="{{ url_for('sales.complete_sale') }}" @click="
-                                                                                    if (receivedAmount < cart.reduce((total, product) => total + product.price * product.quantity, 0)) {
-                                                                                        errorMessage = 'Received amount is not enough.';
-                                                                                    } else {
-                                                                                        errorMessage = '';
-                                                                                        showConfirm = false;
-                                                                                    }
-                                                                                "
+                                                                                                if (receivedAmount < cart.reduce((total, product) => total + product.price * product.quantity, 0)) {
+                                                                                                    errorMessage = 'Received amount is not enough.';
+                                                                                                } else {
+                                                                                                    errorMessage = '';
+                                                                                                    showConfirm = false;
+                                                                                                }
+                                                                                            "
                                 hx-include="[name='cart'],[name='received']" hx-target="#product-table" hx-swap="outerHTML"
                                 class="px-3 py-1.5 rounded-lg bg-blue-600 text-sm text-white cursor-pointer  hover:bg-blue-700 transition-colors duration-200">
                                 Confirm

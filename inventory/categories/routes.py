@@ -232,25 +232,53 @@ def search_categories():
 @admin_required
 def delete_category(id):
     db = get_db()
+
     category = db.execute("SELECT * FROM categories WHERE id = ?", (id,)).fetchone()
+
+    message = None
+    message_type = None
+
     if not category:
-        return "category not found."
-    db.execute("DELETE FROM categories WHERE id = ?", (id,))
-    db.commit()
+        message = "Category not found."
+        message_type = "error"
+
+    else:
+        has_products = db.execute(
+            "SELECT 1 FROM products WHERE category_id = ? LIMIT 1", (id,)
+        ).fetchone()
+
+        if has_products:
+            message = "Cannot delete: This category still has products."
+            message_type = "error"
+
+        else:
+            db.execute("DELETE FROM categories WHERE id = ?", (id,))
+            db.commit()
+
+            message = "Category deleted."
+            message_type = "success"
+
     categories = db.execute("""
-         SELECT
-         categories.id,
-         categories.name,
-         categories.photo,
-         COUNT(products.id) AS product_count
-         FROM categories
-         LEFT JOIN products
-         ON categories.id = products.category_id
-         GROUP BY categories.id
-         ORDER BY categories.name
-         """).fetchall()
+        SELECT
+            categories.id,
+            categories.name,
+            categories.photo,
+            COUNT(products.id) AS product_count
+        FROM categories
+        LEFT JOIN products
+            ON categories.id = products.category_id
+        GROUP BY categories.id
+        ORDER BY categories.name
+    """).fetchall()
+
     db.close()
-    return render_template("categories/_category_cards.html", categories=categories)
+
+    return render_template(
+        "categories/_category_cards.html",
+        categories=categories,
+        message=message,
+        message_type=message_type,
+    )
 
 
 # =====================================================================================

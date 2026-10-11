@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}
-    Categories
+    KG Inventory | Categories
 {% endblock %}
 {% block content %}
     <div x-data="{open:false,editOpen:false,deleteOpen:false,preview:null}" class="flex-1 bg-[#F8FAFC] p-8">
@@ -32,6 +32,8 @@
 
 
         </div>
+        <!-- Category Message -->
+        <div id="delete-message"></div>
         <div id="category-content">
             <!--==== Add model form-->
             <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

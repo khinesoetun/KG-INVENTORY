@@ -1,0 +1,8 @@
+<div id="delete-message" hx-swap-oob="true" class="mt-4 rounded-lg px-4 py-3 text-sm
+{% if message_type == 'success' %}
+                                                                            bg-green-50 text-green-600
+{% else %}
+                                                                            bg-red-50 text-red-600
+{% endif %}">
+    {{ message }}
+</div>

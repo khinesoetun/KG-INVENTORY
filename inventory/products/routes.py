@@ -260,8 +260,25 @@ def delete_product(id):
     db = get_db()
 
     product = db.execute("SELECT photo FROM products WHERE id = ?", (id,)).fetchone()
+    has_sales = db.execute(
+        "SELECT 1 FROM sale_items WHERE product_id = ? LIMIT 1", (id,)
+    ).fetchone()
 
-    if product:
+    has_movements = db.execute(
+        "SELECT 1 FROM stock_movements WHERE product_id = ? LIMIT 1", (id,)
+    ).fetchone()
+
+    message = None
+
+    if product and (has_sales or has_movements):
+        if has_sales and has_movements:
+            message = "Cannot delete: Sales and Stock Movement records exist."
+        elif has_sales:
+            message = "Cannot delete: Sales history exists."
+        else:
+            message = "Cannot delete: Stock Movement history exists."
+
+    elif product:
         photo_name = product["photo"]
 
         db.execute("DELETE FROM products WHERE id = ?", (id,))
@@ -284,6 +301,10 @@ def delete_product(id):
                     and os.path.isfile(photo_path)
                 ):
                     os.remove(photo_path)
+
+    else:
+        message = "Product not found."
+
     products = db.execute("""
         SELECT
             products.id,
@@ -299,7 +320,12 @@ def delete_product(id):
     """).fetchall()
 
     db.close()
-    return render_template("products/_product_table.html", products=products)
+    return render_template(
+        "products/_product_table.html",
+        products=products,
+        message=message,
+        message_type="error" if message else "success",
+    )
 
 
 # ============================================================================================
