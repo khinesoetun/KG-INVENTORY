@@ -1,11 +1,16 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from database import get_db
+from database import get_db, UPLOADS_PATH
+from inventory.auth.routes import admin_required
 import sqlite3
+import os
+from inventory.products.routes import process_product_image
+import uuid
 
 category_bp = Blueprint("category", __name__)
 
 
 @category_bp.route("/categories")
+@admin_required
 def categories():
     db = get_db()
     categories = db.execute("""
@@ -28,18 +33,27 @@ def categories():
 # ===================================================================================
 # ===============        ADD CATEGORIES      ========================================
 @category_bp.route("/category/add", methods=["POST", "GET"])
+@admin_required
 def add_category():
     message = None
     message_type = None
     name = request.form.get("name")
     photo = request.files.get("photo")
-    photo_name = photo.filename if photo else None
-    print("photo", photo)
-    print("Filename:", photo_name)
     if not name:
         return "Category name is required"
+
+    photo_name = None
+
     if photo and photo.filename:
-        photo.save("static/uploads/categories-photo/" + photo_name)
+        photo_data = process_product_image(photo)
+
+        if photo_data:
+            photo_name = f"categories-photo/{uuid.uuid4().hex}.jpg"
+
+            photo_path = os.path.join(UPLOADS_PATH, photo_name)
+
+            with open(photo_path, "wb") as f:
+                f.write(photo_data)
     try:
         db = get_db()
         db.execute(
@@ -48,8 +62,21 @@ def add_category():
         db.commit()
         message = "Category added successfully."
         message_type = "success"
+    except ValueError as e:
+        message = str(e)
+        message_type = "error"
+
     except sqlite3.IntegrityError:
-        message = "Category name is already exists."
+        if photo_name:
+            photo_path = os.path.join(
+    UPLOADS_PATH,
+    photo_name
+)
+
+            if os.path.isfile(photo_path):
+                os.remove(photo_path)
+
+        message = "Category name already exists."
         message_type = "error"
 
     categories = db.execute("""
@@ -80,6 +107,7 @@ def add_category():
 # =========================================================================================
 # ===============        VIEW CATOGORIES     ==============================================
 @category_bp.route("/categories/<int:id>")
+@admin_required
 def view_category(id):
     db = get_db()
     category = db.execute("SELECT * FROM categories WHERE id = ?", (id,)).fetchone()
@@ -98,6 +126,7 @@ def view_category(id):
 # ==========================================================================================
 # ==================     EDIT CATEGORY           ===========================================
 @category_bp.route("/categories/<int:id>/edit", methods=["GET", "POST"])
+@admin_required
 def edit_category(id):
     message = None
     message_type = None
@@ -117,7 +146,7 @@ def edit_category(id):
             photo_name = category["photo"]
             if photo and photo.filename:
                 photo_name = photo.filename
-                photo.save("static/uploads/categories-photo/" + photo.filename)
+                photo.save(os.path.join(UPLOADS_PATH, "categories-photo", photo.filename))
             db.execute(
                 "UPDATE categories SET name = ? ,photo = ? WHERE id = ?",
                 (name, photo_name, id),
@@ -144,7 +173,7 @@ def edit_category(id):
         (id,),
     ).fetchone()
     categories = db.execute("""
-        SELECT 
+        SELECT
         categories.id,
         categories.name,
         categories.photo,
@@ -169,6 +198,7 @@ def edit_category(id):
 # =================================================================================================
 # =====================      CATEGORIES SEARCH       ==============================================
 @category_bp.route("/categories/search")
+@admin_required
 def search_categories():
     query = request.args.get("q", "")
     db = get_db()
@@ -196,6 +226,7 @@ def search_categories():
 # =============================================================================================
 # ===================        DELETE CATEGORIES       ==========================================
 @category_bp.route("/categories/<int:id>/delete", methods=["POST"])
+@admin_required
 def delete_category(id):
     db = get_db()
     category = db.execute("SELECT * FROM categories WHERE id = ?", (id,)).fetchone()
@@ -204,7 +235,7 @@ def delete_category(id):
     db.execute("DELETE FROM categories WHERE id = ?", (id,))
     db.commit()
     categories = db.execute("""
-         SELECT 
+         SELECT
          categories.id,
          categories.name,
          categories.photo,
@@ -213,7 +244,7 @@ def delete_category(id):
          LEFT JOIN products
          ON categories.id = products.category_id
          GROUP BY categories.id
-         ORDER BY categories.name 
+         ORDER BY categories.name
          """).fetchall()
     db.close()
     return render_template("categories/_category_cards.html", categories=categories)
@@ -222,5 +253,6 @@ def delete_category(id):
 # =====================================================================================
 # ==============         delete comfirm route    ======================================
 @category_bp.route("/categories/<int:id>/delete-confirm")
+@admin_required
 def delete_confirm(id):
     return render_template("categories/_delete_confirm.html", id=id)
