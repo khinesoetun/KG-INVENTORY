@@ -52,7 +52,7 @@
         </label>
 
         {% if product['photo'] %}
-            <img src="{{ url_for('static', filename='uploads/' + product['photo']) }}"
+            <img src="{{ url_for('uploaded_file', filename=product['photo']) }}"
                 class="mt-2 h-20 w-20 rounded-lg object-cover">
         {% endif %}
 

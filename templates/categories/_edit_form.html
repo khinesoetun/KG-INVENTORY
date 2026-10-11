@@ -5,7 +5,7 @@
     <input type="text" name="name" value="{{ category['name'] }}"
         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" required>
     {% if category['photo'] %}
-        <img src="{{ url_for('static',filename='uploads/categories-photo/')+ category['photo'] }}"
+        <img src="{{ url_for('uploaded_file', filename='categories-photo/' + category['photo']) }}"
             class="mt-3 h-20 w-20 rounded-lg object-cover">
     {% endif %}
     <input type="file" name="photo" accept="image/*" class="mt-3">

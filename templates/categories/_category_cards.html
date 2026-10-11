@@ -2,9 +2,10 @@
 
     {% for category in categories %}
         <div id="category-{{ category['id'] }}" class="max-w-xs bg-white p-4 rounded-lg shadow-sm">
-            <div class="mx-auto h-18 w-18 overflow-hidden rounded-full bg-slate-100 ">
+            <div class="mx-auto h-32 w-32 overflow-hidden rounded-full bg-slate-100">
                 {% if category["photo"] %}
-                    <img src="{{ url_for('static',filename='uploads/categories-photo/' + category['photo']) }}">
+                    <img src="{{ url_for('uploaded_file', filename='categories-photo/' + category['photo']) }}"
+                        class="mx-auto h-32 w-32 rounded-full object-cover " alt="{{ category['name'] }}">
                 {% endif %}
             </div>
             <div class="mt-2 text-center items-center justify-between">
