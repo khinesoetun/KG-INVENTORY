@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>KG Inventory - All Sales Report</title>
+
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+        }
+
+        body {
+            font-family: sans-serif;
+            font-size: 12px;
+            color: #1e293b;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        .summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            flex: 1;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .card h3 {
+            font-size: 11px;
+            color: #64748b;
+            margin: 0 0 8px;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            break-inside: avoid;
+        }
+
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: center;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .amount {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>KG Inventory</h1>
+    <div class="summary">
+
+        <div class="card">
+            <h3>Total Sales</h3>
+            <p>{{ total_sales }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Total Items</h3>
+            <p>{{ total_items }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Total Revenue</h3>
+            <p>${{ "%.2f"|format(total_revenue) }}</p>
+        </div>
+
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Sale ID</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Received</th>
+                <th>Change</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for sale in sales %}
+                <tr>
+                    <td>#{{ sale.id }}</td>
+                    <td>{{ sale.created_at }}</td>
+                    <td>{{ sale.item_count }}</td>
+                    <td class="amount">${{ "%.2f"|format(sale.total or 0) }}</td>
+                    <td class="amount">${{ "%.2f"|format(sale.received or 0) }}</td>
+                    <td class="amount">${{ "%.2f"|format(sale.change or 0) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>

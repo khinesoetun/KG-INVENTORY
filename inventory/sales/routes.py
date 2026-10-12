@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, make_response, session
 from database import get_db
 import json
+from weasyprint import HTML
 from inventory.auth.routes import login_required
 from io import BytesIO
 from flask import send_file
@@ -341,7 +342,7 @@ def all_sales_pdf():
             sales.received,
             sales.change,
             sales.created_at,
-            COUNT(sale_items.id) AS item_count
+            COALESCE(SUM(sale_items.quantity), 0) AS item_count
         FROM sales
         LEFT JOIN sale_items
             ON sales.id = sale_items.sale_id
@@ -367,66 +368,27 @@ def all_sales_pdf():
     """
 
     sales = db.execute(query, params).fetchall()
+    total_sales = len(sales)
 
-    buffer = BytesIO()
+    total_items = sum(sale["item_count"] or 0 for sale in sales)
 
-    pdf = SimpleDocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        rightMargin=25,
-        leftMargin=25,
-        topMargin=30,
-        bottomMargin=30,
+    total_revenue = sum(sale["total"] or 0 for sale in sales)
+
+    html = render_template(
+        "sales/all_sales_report.html",
+        sales=sales,
+        total_sales=total_sales,
+        total_items=total_items,
+        total_revenue=total_revenue,
     )
 
-    styles = getSampleStyleSheet()
-
-    elements = [
-        Paragraph("All Sales Report", styles["Title"]),
-        Spacer(1, 20),
-    ]
-
-    data = [["Sale ID", "Items", "Total", "Received", "Change", "Date"]]
-
-    for sale in sales:
-        data.append(
-            [
-                f"#{sale['id']}",
-                str(sale["item_count"]),
-                f"${sale['total']:.2f}",
-                f"${sale['received']:.2f}",
-                f"${sale['change']:.2f}",
-                str(sale["created_at"]),
-            ]
-        )
-
-    table = Table(
-        data,
-        colWidths=[90, 90, 120, 120, 120, 220],
-        repeatRows=1,
-        hAlign="LEFT",
-    )
-
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1E40AF")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("PADDING", (0, 0), (-1, -1), 8),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ]
-        )
-    )
-
-    elements.append(table)
-    pdf.build(elements)
-
-    buffer.seek(0)
+    pdf_bytes = HTML(
+        string=html,
+        base_url=request.root_url,
+    ).write_pdf()
 
     return send_file(
-        buffer,
+        BytesIO(pdf_bytes),
         mimetype="application/pdf",
         as_attachment=True,
         download_name="all_sales.pdf",

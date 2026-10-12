@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, send_file
 from database import get_db
+from weasyprint import HTML
 from io import BytesIO
-from flask import send_file
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import (
@@ -154,120 +154,22 @@ def reports_pdf():
     gross_profit = revenue - cost
     profit_margin = (gross_profit / revenue * 100) if revenue else 0
 
-    buffer = BytesIO()
-
-    pdf = SimpleDocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        rightMargin=35,
-        leftMargin=35,
-        topMargin=35,
-        bottomMargin=35,
-    )
-    pdfmetrics.registerFont(
-        TTFont(
-            "NotoSansMyanmar",
-            "/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf",
-        )
+    html = render_template(
+        "reports/monthly_report.html",
+        revenue=revenue,
+        cost=cost,
+        gross_profit=gross_profit,
+        profit_margin=profit_margin,
+        product_performance=product_performance,
     )
 
-    styles = getSampleStyleSheet()
-    elements = [
-        Paragraph("Inventory Report", styles["Title"]),
-        Paragraph("Sales &amp; Profit Summary", styles["Normal"]),
-        Spacer(1, 20),
-    ]
-
-    summary_data = [
-        ["Total Revenue", "Total Cost", "Gross Profit", "Profit Margin"],
-        [
-            f"${revenue:.2f}",
-            f"${cost:.2f}",
-            f"${gross_profit:.2f}",
-            f"{profit_margin:.2f}%",
-        ],
-    ]
-
-    summary_table = Table(
-        summary_data,
-        colWidths=[180, 180, 180, 180],
-    )
-
-    summary_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F1629")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
-                ("TOPPADDING", (0, 0), (-1, -1), 12),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-            ]
-        )
-    )
-
-    elements.extend(
-        [
-            summary_table,
-            Spacer(1, 30),
-            Paragraph("Product Performance", styles["Heading2"]),
-            Spacer(1, 10),
-        ]
-    )
-
-    data = [["Product", "Qty Sold", "Revenue", "Cost", "Profit"]]
-
-    for product in product_performance:
-        product_revenue = product["revenue"] or 0
-        product_cost = product["cost"] or 0
-        product_profit = product_revenue - product_cost
-
-        data.append(
-            [
-                product["name"],
-                str(product["qty_sold"] or 0),
-                f"${product_revenue:.2f}",
-                f"${product_cost:.2f}",
-                f"${product_profit:.2f}",
-            ]
-        )
-
-    table = Table(
-        data,
-        colWidths=[300, 100, 120, 120, 120],
-        repeatRows=1,
-    )
-
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F1629")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#334155")),
-                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-                ("ALIGN", (0, 0), (0, -1), "LEFT"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
-                ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-            ]
-        )
-    )
-
-    elements.append(table)
-
-    pdf.build(elements)
-
-    buffer.seek(0)
+    pdf_bytes = HTML(
+        string=html,
+        base_url=request.root_url,
+    ).write_pdf()
 
     return send_file(
-        buffer,
+        BytesIO(pdf_bytes),
         as_attachment=True,
         download_name="inventory_report.pdf",
         mimetype="application/pdf",

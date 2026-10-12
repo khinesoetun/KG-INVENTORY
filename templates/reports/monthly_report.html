@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>KG Inventory Report</title>
+
+    <style>
+        @font-face {
+            font-family: Myanmar;
+            src: url("file:///usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf");
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+        }
+
+        body {
+            font-family: Myanmar, sans-serif;
+            font-size: 10pt;
+            color: #334155;
+        }
+
+        h1 {
+            color: #0F1629;
+            font-size: 22pt;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+
+        .summary {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 28px;
+        }
+
+        .summary td {
+            width: 25%;
+            border: 1px solid #E2E8F0;
+            padding: 14px;
+        }
+
+        .label {
+            color: #334155;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .value {
+            color: #0F1629;
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        h2 {
+            color: #0F1629;
+            font-size: 15pt;
+            margin-bottom: 6px;
+        }
+
+        .products {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .products thead {
+            display: table-header-group;
+        }
+
+        .products tr {
+            break-inside: avoid;
+        }
+
+        .products thead th {
+            background-color: #0F1629;
+            color: white;
+            font-size: 10pt;
+            font-weight: bold;
+            text-align: center !important;
+            padding: 10px 8px;
+        }
+
+        .products td {
+            border-bottom: 1px solid #E2E8F0;
+            padding: 10px 8px;
+            font-size: 10pt;
+        }
+
+        .products tbody tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+
+        .products th,
+        .products td {
+            text-align: center !important;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>KG Inventory</h1>
+    <p class="subtitle">Monthly Sales &amp; Profit Report</p>
+
+    <table class="summary">
+        <tr>
+            <td>
+                <div class="label">Total Revenue</div>
+                <div class="value">${{ "%.2f"|format(revenue) }}</div>
+            </td>
+            <td>
+                <div class="label">Total Cost</div>
+                <div class="value">${{ "%.2f"|format(cost) }}</div>
+            </td>
+            <td>
+                <div class="label">Gross Profit</div>
+                <div class="value">${{ "%.2f"|format(gross_profit) }}</div>
+            </td>
+            <td>
+                <div class="label">Profit Margin</div>
+                <div class="value">{{ "%.2f"|format(profit_margin) }}%</div>
+            </td>
+        </tr>
+    </table>
+    <h2>Product Performance</h2>
+    <p>Sales performance by product</p>
+    <table class="products">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty Sold</th>
+                <th>Revenue</th>
+                <th>Cost</th>
+                <th>Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in product_performance %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.qty_sold or 0 }}</td>
+                    <td>${{ "%.2f"|format(product.revenue or 0) }}</td>
+                    <td>${{ "%.2f"|format(product.cost or 0) }}</td>
+                    <td>${{ "%.2f"|format((product.revenue or 0) - (product.cost or 0)) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
