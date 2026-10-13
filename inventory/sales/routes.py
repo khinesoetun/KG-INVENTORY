@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, make_response, session
 from database import get_db
 import json
+import weasyprint_helper
 from weasyprint import HTML
 from inventory.auth.routes import login_required
 from io import BytesIO
@@ -158,13 +159,18 @@ def complete_sale():
     for item in cart:
 
         product = db.execute(
-            "SELECT id, price FROM products WHERE id = ?", (item["id"],)
+            "SELECT id, price, stock FROM products WHERE id = ?", (item["id"],)
         ).fetchone()
 
         quantity = item["quantity"]
         price = product["price"]
-        total += price * quantity
 
+        if product["stock"] < quantity:
+            db.close()
+            return "Insufficient stock", 400
+
+        total += price * quantity
+       
     received = float(request.form.get("received", 0))
     print("TOTAL:", total)
     print("RECEIVED:", received)

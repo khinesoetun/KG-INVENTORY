@@ -1,6 +1,6 @@
 import os
 import sqlite3
-
+import sys
 
 if os.name == "nt":
     APP_DATA = os.path.join(
@@ -17,7 +17,10 @@ else:
 UPLOADS_PATH = os.path.join(APP_DATA, "uploads")
 
 DB_PATH = os.path.join(APP_DATA, "inventory.db")
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
+if getattr (sys,"frozen",False):
+    SCHEMA_PATH = os.path.join(sys._MEIPASS,"schema.sql")
+else:
+    SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.sql")
 
 
 os.makedirs(APP_DATA, exist_ok=True)

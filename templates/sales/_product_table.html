@@ -38,31 +38,19 @@
                     </td>
                     <td class="px-6 py-4"><button
                             class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
-                            @click="productQty=Math.max(1,productQty-1)">-</button>
+                           @click="productQty = Math.max(0, productQty - 1)">-</button>
                         <span x-text="productQty"></span>
                         <button
                             class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
-                            @click="productQty = Math.min(productStock, productQty + 1)">+</button>
+                            @click="productQty = productStock > 0 ? Math.min(productStock, productQty + 1) : 0">+</button>
 
                     </td>
                     <td class="px-6 py-4"><button data-product-id="{{ product['id'] }}"
                             data-product-name="{{ product['name'] }}" data-product-price="{{ product['price'] }}"
                             data-product-stock="{{ product['stock'] }}"
-                            @click="
-                                                                                                                                                                                                        existing = cart.find(p => p.id === $el.dataset.productId);
-
-                                                                                                                                                                                                        if (existing) {
-                                                                                                                                                                                                        existing.quantity = Math.min(existing.stock,existing.quantity+productQty);
-                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                        cart.push({
-                                                                                                                                                                                                        id: $el.dataset.productId,
-                                                                                                                                                                                                        name: $el.dataset.productName,
-                                                                                                                                                                                                        price: $el.dataset.productPrice,
-                                                                                                                                                                                                        stock: Number($el.dataset.productStock),
-                                                                                                                                                                                                        quantity: productQty
-                                                                                                                                                                                                        });
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                        "
+@click="
+existing = cart.find(p => p.id === $el.dataset.productId); productStock = Number($el.dataset.productStock); if (productStock <= 0) { errorMessage = 'Out of stock.'; } else if (productQty > productStock) { errorMessage = 'Insufficient stock.'; } else { errorMessage = ''; if (existing) { if (existing.quantity + productQty > existing.stock) { errorMessage = 'Insufficient stock.'; } else { existing.quantity += productQty; } } else { cart.push({ id: $el.dataset.productId, name: $el.dataset.productName, price: Number($el.dataset.productPrice), stock: productStock, quantity: productQty }); } }
+"
                             class="px-4 py-2 rounded-lg border bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-colors duration-200">
                             Add
                         </button>

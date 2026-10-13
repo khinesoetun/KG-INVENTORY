@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, send_file
 from database import get_db
+import weasyprint_helper
 from weasyprint import HTML
 from io import BytesIO
 from reportlab.lib import colors

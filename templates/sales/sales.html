@@ -60,14 +60,14 @@
                                 <td class="py-3">
                                     <button
                                         class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
-                                        @click="product.quantity = Math.max(1, product.quantity - 1)">
+                                        @click="productQty = Math.max(0, productQty - 1)">
                                         -
                                     </button>
 
                                     <span x-text="product.quantity"></span>
                                     <button
                                         class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
-                                        @click="product.quantity = Math.min(product.stock, product.quantity + 1)">
+                                       @click="productQty = productStock > 0 ? Math.min(productStock, productQty + 1) : 0">
                                         +
                                     </button>
                                 </td>
@@ -149,6 +149,7 @@
                                                                                                 }
                                                                                             "
                                 hx-include="[name='cart'],[name='received']" hx-target="#product-table" hx-swap="outerHTML"
+                                hx-on::response-error="errorMessage = 'Sale failed. Please try again.'; console.log('Sale error event received')"
                                 class="px-3 py-1.5 rounded-lg bg-blue-600 text-sm text-white cursor-pointer  hover:bg-blue-700 transition-colors duration-200">
                                 Confirm
                             </button>

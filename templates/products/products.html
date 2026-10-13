@@ -6,7 +6,13 @@
 
 {% block content %}
     <!-- ===== Products Page / Alpine Scope ===== -->
-    <div x-data="{ open: false, editOpen: false, preview: null }" class="flex-1 bg-[#F8FAFC] p-8">
+    <div x-data="{
+    open: false,
+    editOpen: false,
+    preview: null,
+    costPrice: '',
+    sellingPrice: ''
+}" class="flex-1 bg-[#F8FAFC] p-8">
         <!-- ===== Page Header ===== -->
         <h1 class="text-2xl font-semibold text-slate-900">
             Products
@@ -42,7 +48,7 @@
         </div>
         <!-- ===== Product Table & Pagination ===== -->
         <!-- Product Message -->
-        <div id="product-message" class="mb-4 text-sm"></div>
+        <div id="delete-product-message" class="mb-4 text-sm"></div>
 
         <!-- Product Table & Pagination -->
         <div id="product-list">

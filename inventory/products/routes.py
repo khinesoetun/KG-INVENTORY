@@ -349,11 +349,17 @@ def edit_products(id):
         new_photo_name = None
 
         try:
-            name = request.form["name"]
-            category_id = request.form["category_id"]
-            price = request.form["price"]
-            cost_price = request.form["cost_price"]
+            
+            name = request.form["name"].strip()
+            category_id = int(request.form["category_id"])
+            price = float(request.form["price"])
+            cost_price = float(request.form["cost_price"])
 
+            if not name:
+                raise ValueError("Product name is required.")
+
+            if price < 0 or cost_price < 0:
+                raise ValueError("Prices cannot be negative.")
             photo = request.files.get("photo")
             photo_name = product["photo"]
 
